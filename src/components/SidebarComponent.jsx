@@ -55,7 +55,7 @@ const SidebarComponent = () => {
       style={{
         minHeight: '100vh',
         width: '250px',
-        border: '1px solid #28a745', // Changed border color to green
+        border: '1px solid #28a745', // Green border
       }}
     >
       <h4 className="text-dark mb-4">HR Portal</h4>
@@ -75,7 +75,7 @@ const SidebarComponent = () => {
           <div
             className="nav-link d-flex align-items-center"
             style={
-              location.pathname.includes('/hr-management')
+              location.pathname.includes('/hr-management/employee')
                 ? activeParentStyle
                 : inactiveParentStyle
             }
@@ -114,19 +114,18 @@ const SidebarComponent = () => {
         </li>
         <li className="nav-item mb-2">
           <NavLink
-            to="/remuneration"
+            to="/hr-management/remuneration"
             className="nav-link d-flex align-items-center"
             style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
           >
             <FaMoneyBillWave className="me-2" style={iconStyle} />
             Salary & Remuneration
-            
           </NavLink>
         </li>
         
         <li className="nav-item mb-2">
           <NavLink
-            to="/leave-attendance"
+            to="/hr-management/leave-attendance"
             className="nav-link d-flex align-items-center"
             style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
           >
@@ -136,7 +135,7 @@ const SidebarComponent = () => {
         </li>
         <li className="nav-item mb-2">
           <NavLink
-            to="/performance"
+            to="/hr-management/performance"
             className="nav-link d-flex align-items-center"
             style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
           >
@@ -146,7 +145,7 @@ const SidebarComponent = () => {
         </li>
         <li className="nav-item mb-2">
           <NavLink
-            to="/finance"
+            to="/hr-management/finance"
             className="nav-link d-flex align-items-center"
             style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
           >
@@ -156,7 +155,7 @@ const SidebarComponent = () => {
         </li>
         <li className="nav-item mb-2">
           <NavLink
-            to="/trainings"
+            to="/hr-management/trainings"
             className="nav-link d-flex align-items-center"
             style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
           >
@@ -166,7 +165,7 @@ const SidebarComponent = () => {
         </li>
         <li className="nav-item mb-2">
           <NavLink
-            to="/hr-actions"
+            to="/hr-management/hr-actions"
             className="nav-link d-flex align-items-center"
             style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
           >
@@ -176,7 +175,7 @@ const SidebarComponent = () => {
         </li>
         <li className="nav-item mb-2">
           <NavLink
-            to="/separation"
+            to="/hr-management/separation"
             className="nav-link d-flex align-items-center"
             style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
           >
@@ -186,7 +185,7 @@ const SidebarComponent = () => {
         </li>
         <li className="nav-item mb-2">
           <NavLink
-            to="/documents"
+            to="/hr-management/documents"
             className="nav-link d-flex align-items-center"
             style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
           >
@@ -196,7 +195,7 @@ const SidebarComponent = () => {
         </li>
         <li className="nav-item mb-2">
           <NavLink
-            to="/messenger"
+            to="/hr-management/messenger"
             className="nav-link d-flex align-items-center"
             style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
           >

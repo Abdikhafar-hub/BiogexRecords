@@ -2,23 +2,25 @@ import React, { useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { Container, Form, Button, Card } from 'react-bootstrap';
 
-const Login = ({ onLogin }) => {
+const Signup = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e) => {
+  const handleSignup = (e) => {
     e.preventDefault();
-    onLogin(); // Trigger the onLogin function to set isAuthenticated to true
-    navigate('/dashboard'); // Navigate to dashboard
+    // Placeholder for signup logic (e.g., API call)
+    console.log('Signup attempted with:', { email, password });
+    // For now, navigate back to login after signup
+    navigate('/');
   };
 
   return (
     <Container className="d-flex justify-content-center align-items-center vh-100">
       <Card style={{ width: '22rem' }} className="shadow">
         <Card.Body>
-          <h2 className="text-center mb-4">Login to Biogex</h2>
-          <Form onSubmit={handleLogin}>
+          <h2 className="text-center mb-4">Sign up for Biogex</h2>
+          <Form onSubmit={handleSignup}>
             <Form.Group className="mb-3">
               <Form.Label>Email address</Form.Label>
               <Form.Control
@@ -42,14 +44,14 @@ const Login = ({ onLogin }) => {
             </Form.Group>
 
             <Button variant="success" type="submit" className="w-100">
-              Sign in
+              Sign up
             </Button>
           </Form>
           <div className="text-center mt-3">
             <p>
-              Don't have an account?{' '}
-              <NavLink to="/signup" style={{ color: '#28a745', textDecoration: 'none' }}>
-                Sign up
+              Already have an account?{' '}
+              <NavLink to="/" style={{ color: '#28a745', textDecoration: 'none' }}>
+                Sign in
               </NavLink>
             </p>
           </div>
@@ -59,4 +61,4 @@ const Login = ({ onLogin }) => {
   );
 };
 
-export default Login;
+export default Signup;
