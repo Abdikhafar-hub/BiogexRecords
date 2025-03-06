@@ -14,7 +14,9 @@ import LeaveAttendance from './components/LeaveAttendance';
 import Separation from './components/Separation';
 import Documents from './components/Documents';
 import CustomerList from './components/CustomerList';
-import Remuneration from './components/Remuneration';
+import CustomerDetails from './components/CustomerDetails';
+import Remuneration from './components/Remuneration'; // Renamed from MySaryList
+import MySalaryDetails from './components/MySalaryDetails'; // Renamed from MySaryDetails
 import Performance from './components/Performance';
 import Finance from './components/Finance';
 import Trainings from './components/Trainings';
@@ -31,7 +33,7 @@ const globalStyles = `
   }
 
   .sidebar-container {
-    width: 250px;
+    width: 300px;
     position: fixed;
     top: 0;
     bottom: 0;
@@ -40,14 +42,14 @@ const globalStyles = `
   }
 
   .main-content {
-    margin-left: 0; /* Default for routes without sidebar */
+    margin-left: 0;
     width: 100%;
     min-height: 100vh;
   }
 
   .main-content.with-sidebar {
-    margin-left: 250px; /* Adjust for sidebar width */
-    width: calc(100% - 250px);
+    margin-left: 300px;
+    width: calc(100% - 300px);
   }
 `;
 
@@ -106,7 +108,6 @@ const AppContent = () => {
               path="/dashboard"
               element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />}
             />
-            {/* Changed default /hr-management to show EmployeeList */}
             <Route
               path="/hr-management"
               element={
@@ -121,7 +122,6 @@ const AppContent = () => {
                 )
               }
             />
-            {/* Optional: Move HRManagementDashboard to a sub-route */}
             <Route
               path="/hr-management/dashboard"
               element={isAdminAuthenticated ? <HRManagementDashboard /> : <Navigate to="/admin-login" />}
@@ -155,8 +155,16 @@ const AppContent = () => {
               element={isAdminAuthenticated ? <CustomerList /> : <Navigate to="/admin-login" />}
             />
             <Route
+              path="/hr-management/customer-details/:id"
+              element={isAdminAuthenticated ? <CustomerDetails /> : <Navigate to="/admin-login" />}
+            />
+            <Route
               path="/hr-management/remuneration"
               element={isAdminAuthenticated ? <Remuneration /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/remuneration/:employeeId"
+              element={isAdminAuthenticated ? <MySalaryDetails /> : <Navigate to="/admin-login" />}
             />
             <Route
               path="/hr-management/performance"

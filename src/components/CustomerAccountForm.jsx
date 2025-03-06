@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap'; // Added Row, Col
+import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { supabase } from '../supabaseClient';
 
 // Custom CSS
@@ -10,17 +10,17 @@ const customStyles = `
   .form-container {
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
-    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Subtle gradient background */
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
     padding: 2rem 1rem;
     margin-top: 50px;
   }
 
   .form-card {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); /* Subtle gradient */
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
     border: 2px solid transparent;
-    border-image: linear-gradient(90deg, #047857 0%, #28a745 100%) 1; /* Gradient border */
+    border-image: linear-gradient(90deg, #047857 0%, #28a745 100%) 1;
     border-radius: 20px;
-    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5); /* Floating effect */
+    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5);
     transition: all 0.3s ease;
   }
 
@@ -29,7 +29,7 @@ const customStyles = `
   }
 
   .form-header {
-    background: linear-gradient(90deg, #047857 0%, #28a745 100%); /* Gradient header */
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #fff;
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
@@ -52,9 +52,9 @@ const customStyles = `
     font-family: 'Poppins', sans-serif;
     font-size: 1rem;
     font-weight: 500;
-    color: #4b5563; /* Medium gray */
-    background: #f1f5f9; /* Light gray background */
-    border-left: 4px solid #047857; /* Green left border */
+    color: #4b5563;
+    background: #f1f5f9;
+    border-left: 4px solid #047857;
     padding: 0.75rem 1.5rem;
     margin: 1rem 1.5rem;
     border-radius: 8px;
@@ -80,6 +80,19 @@ const customStyles = `
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
+  .form-success {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #28a745;
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+    padding: 0.75rem 1.5rem;
+    margin: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
   .form-body {
     background-color: #f8f9fa;
     color: #000;
@@ -91,7 +104,7 @@ const customStyles = `
   .form-section-title {
     font-size: 1.5rem;
     font-weight: 600;
-    color: #047857; /* Biogex green */
+    color: #047857;
     margin-top: 2rem;
     margin-bottom: 1rem;
     position: relative;
@@ -112,19 +125,19 @@ const customStyles = `
   .form-subsection-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #4b5563; /* Medium gray */
+    color: #4b5563;
     margin-top: 1.5rem;
     margin-bottom: 1rem;
   }
 
   .form-label {
     font-weight: 500;
-    color: #1f2937; /* Dark gray */
+    color: #1f2937;
     margin-bottom: 0.5rem;
   }
 
   .form-control, .form-select {
-    border: 1px solid #d1d5db; /* Light gray border */
+    border: 1px solid #d1d5db;
     border-radius: 8px;
     padding: 0.75rem;
     transition: all 0.3s ease;
@@ -138,12 +151,12 @@ const customStyles = `
   }
 
   .form-control::placeholder {
-    color: #9ca3af; /* Light gray */
+    color: #9ca3af;
     font-style: italic;
   }
 
   .form-footer {
-    background: linear-gradient(90deg, #047857 0%, #28a745 100%); /* Gradient footer */
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #fff;
     border-bottom-left-radius: 16px;
     border-bottom-right-radius: 16px;
@@ -154,7 +167,7 @@ const customStyles = `
     font-weight: 600;
     font-size: 1rem;
     padding: 0.75rem 1.5rem;
-    border-radius: 9999px; /* Fully rounded corners */
+    border-radius: 9999px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
   }
@@ -226,6 +239,7 @@ const CustomerAccountForm = () => {
     declarationDate: '',
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -268,6 +282,7 @@ const CustomerAccountForm = () => {
     }
 
     setError('');
+    setSuccess('');
 
     try {
       // Prepare customer data for insertion
@@ -309,6 +324,7 @@ const CustomerAccountForm = () => {
         declaration_name: formData.declarationName,
         declaration_signature: formData.declarationSignature,
         declaration_date: formData.declarationDate,
+        created_at: new Date().toISOString(),
       };
 
       // Insert customer data into Supabase
@@ -362,9 +378,12 @@ const CustomerAccountForm = () => {
         declarationDate: '',
       });
       setFiles({});
+      setSuccess('Customer registered successfully!');
 
-      // Navigate to a confirmation page or dashboard
-      navigate('/dashboard');
+      // Navigate to CustomerList after a short delay
+      setTimeout(() => {
+        navigate('/hr-management/customer-list');
+      }, 1500);
     } catch (err) {
       setError(err.message);
       console.error(err);
@@ -388,6 +407,7 @@ const CustomerAccountForm = () => {
             Please fill all the required information, attach the required documents, and click submit to complete your registration.
           </div>
           {error && <div className="form-error">{error}</div>}
+          {success && <div className="form-success">{success}</div>}
           <div className="form-body">
             <Form onSubmit={handleSubmit}>
               {/* Section 1: Customer Details */}

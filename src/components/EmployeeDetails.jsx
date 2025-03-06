@@ -1,87 +1,383 @@
 import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
+
+// Custom CSS for styling
+const customStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+  .employee-details-container {
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
+    padding: 2rem 1rem;
+  }
+
+  .employee-details-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border: 2px solid transparent;
+    border-image: linear-gradient(90deg, #047857 0%, #28a745 100%) 1;
+    border-radius: 20px;
+    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+  }
+
+  .employee-details-card:hover {
+    box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.15), -10px -10px 20px rgba(255, 255, 255, 0.7);
+  }
+
+  .employee-details-header {
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
+    color: #fff;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .employee-details-title {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .employee-details-body {
+    padding: 2rem 1.5rem;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    background-color: #f8f9fa;
+  }
+
+  .employee-details-section {
+    margin-bottom: 2rem;
+  }
+
+  .employee-details-section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #047857;
+    margin-bottom: 1rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+  }
+
+  .employee-details-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
+    border-radius: 2px;
+  }
+
+  .employee-details-label {
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+    width: 200px;
+  }
+
+  .employee-details-value {
+    color: #333;
+    padding-left: 1rem;
+    word-break: break-word;
+  }
+
+  .employee-details-image {
+    max-width: 150px;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+  }
+
+  .back-btn,
+  .delete-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    margin-right: 1rem;
+    margin-top: 1rem;
+    display: inline-block;
+  }
+
+  .back-btn {
+    background-color: #28a745;
+    color: #fff;
+  }
+
+  .back-btn:hover {
+    background-color: #047857;
+  }
+
+  .delete-btn {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+
+  .delete-btn:hover {
+    background-color: #b02a37;
+  }
+
+  .footer-btn-container {
+    text-align: center;
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    padding: 1rem;
+  }
+`;
 
 const EmployeeDetails = ({ employee, onBack }) => {
+  const navigate = useNavigate();
+
+  const handleDelete = async () => {
+    // Show confirmation prompt
+    const confirmDelete = window.confirm('Are you sure you want to delete this employee?');
+    if (!confirmDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('employees')
+        .delete()
+        .eq('id', employee.id);
+
+      if (error) {
+        throw new Error('Failed to delete employee: ' + error.message);
+      }
+
+      // Navigate back to the employee list after deletion
+      navigate('/hr-management/employee-list');
+      onBack(); // Reset selected employee in parent component
+    } catch (err) {
+      console.error(err.message);
+      alert(err.message);
+    }
+  };
+
+  if (!employee) return <div className="error-text">Employee not found.</div>;
+
   return (
-    <div className="container my-5">
-      <div className="card shadow" style={{ border: '2px solid #28a745', backgroundColor: '#fff' }}>
-        <div className="card-header text-center" style={{ backgroundColor: '#28a745', color: '#fff' }}>
-          <h2>Employee Details</h2>
-        </div>
-        <div className="card-body">
-          <div className="row">
-            <div className="col-md-4 text-center">
-              {employee.profile_pic_url ? (
-                <img
-                  src={employee.profile_pic_url}
-                  alt="Profile"
-                  className="img-fluid rounded-circle"
-                  style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-                />
-              ) : (
-                <p>No profile picture available.</p>
-              )}
-            </div>
-            <div className="col-md-8">
-              <h5 style={{ color: '#28a745' }}>Personal Information</h5>
-              <p><strong>Full Name:</strong> {employee.full_name}</p>
-              <p><strong>Date of Birth:</strong> {employee.date_of_birth}</p>
-              <p><strong>National ID/Passport:</strong> {employee.national_id}</p>
-              <p><strong>Tax ID (TIN/KRA PIN):</strong> {employee.tax_id}</p>
-              <p><strong>Social Security (NSSF/SSN):</strong> {employee.social_security}</p>
-              <p><strong>Nationality:</strong> {employee.nationality}</p>
-              <p><strong>Gender:</strong> {employee.gender}</p>
-              <p><strong>Marital Status:</strong> {employee.marital_status}</p>
+    <>
+      <style>{customStyles}</style>
+      <div className="employee-details-container">
+        <div className="employee-details-card">
+          <div className="employee-details-header">
+            <h2 className="employee-details-title">Employee Details</h2>
+          </div>
+          <div className="employee-details-body">
+            <div className="employee-details-section">
+              <div className="row">
+                <div className="col-md-4 text-center">
+                  {employee.profile_pic_url ? (
+                    <img
+                      src={employee.profile_pic_url}
+                      alt="Profile"
+                      className="employee-details-image"
+                    />
+                  ) : (
+                    <p>No profile picture available.</p>
+                  )}
+                </div>
+                <div className="col-md-8">
+                  <h3 className="employee-details-section-title">Personal Information</h3>
+                  <div>
+                    <span className="employee-details-label">Full Name:</span>
+                    <span className="employee-details-value">{employee.full_name}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Date of Birth:</span>
+                    <span className="employee-details-value">{employee.date_of_birth}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">National ID/Passport:</span>
+                    <span className="employee-details-value">{employee.national_id}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Tax ID (TIN/KRA PIN):</span>
+                    <span className="employee-details-value">{employee.tax_id}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Social Security (NSSF/SSN):</span>
+                    <span className="employee-details-value">{employee.social_security}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Nationality:</span>
+                    <span className="employee-details-value">{employee.nationality}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Gender:</span>
+                    <span className="employee-details-value">{employee.gender}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Marital Status:</span>
+                    <span className="employee-details-value">{employee.marital_status}</span>
+                  </div>
 
-              <h5 style={{ color: '#28a745' }} className="mt-4">Contact Information</h5>
-              <p><strong>Permanent Address:</strong> {employee.permanent_address}</p>
-              <p><strong>Current Address:</strong> {employee.current_address}</p>
-              <p><strong>Phone Number:</strong> {employee.phone_number}</p>
-              <p><strong>Email Address:</strong> {employee.email}</p>
-              <p><strong>Emergency Contact:</strong> {employee.emergency_contact}</p>
+                  <h3 className="employee-details-section-title">Contact Information</h3>
+                  <div>
+                    <span className="employee-details-label">Permanent Address:</span>
+                    <span className="employee-details-value">{employee.permanent_address}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Current Address:</span>
+                    <span className="employee-details-value">{employee.current_address}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Phone Number:</span>
+                    <span className="employee-details-value">{employee.phone_number}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Email Address:</span>
+                    <span className="employee-details-value">{employee.email}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Emergency Contact:</span>
+                    <span className="employee-details-value">{employee.emergency_contact}</span>
+                  </div>
 
-              <h5 style={{ color: '#28a745' }} className="mt-4">Employment Details</h5>
-              <p><strong>Position/Job Title:</strong> {employee.position}</p>
-              <p><strong>Department/Division:</strong> {employee.department}</p>
-              <p><strong>Employment Type:</strong> {employee.employment_type}</p>
-              <p><strong>Start Date:</strong> {employee.start_date}</p>
-              <p><strong>Work Location/Branch:</strong> {employee.work_location}</p>
-              <p><strong>Reporting Manager:</strong> {employee.reporting_manager}</p>
-              <p><strong>Probation Period:</strong> {employee.probation_period || 'N/A'}</p>
-              <p><strong>Job Description:</strong> {employee.job_description}</p>
-              <p><strong>Employee Code/ID:</strong> {employee.employee_code}</p>
+                  <h3 className="employee-details-section-title">Employment Details</h3>
+                  <div>
+                    <span className="employee-details-label">Position/Job Title:</span>
+                    <span className="employee-details-value">{employee.position}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Department/Division:</span>
+                    <span className="employee-details-value">{employee.department}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Employment Type:</span>
+                    <span className="employee-details-value">{employee.employment_type}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Start Date:</span>
+                    <span className="employee-details-value">{employee.start_date}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Work Location/Branch:</span>
+                    <span className="employee-details-value">{employee.work_location}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Reporting Manager:</span>
+                    <span className="employee-details-value">{employee.reporting_manager}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Probation Period:</span>
+                    <span className="employee-details-value">{employee.probation_period || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Job Description:</span>
+                    <span className="employee-details-value">{employee.job_description}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Employee Code/ID:</span>
+                    <span className="employee-details-value">{employee.employee_code}</span>
+                  </div>
 
-              <h5 style={{ color: '#28a745' }} className="mt-4">Compensation Details</h5>
-              <p><strong>Gross Basic Salary:</strong> {employee.gross_salary}</p>
-              <p><strong>Payment Method:</strong> {employee.payment_method}</p>
-              <p><strong>Bank Details:</strong> {employee.bank_details}</p>
-              <p><strong>Allowances:</strong> {employee.allowances || 'N/A'}</p>
-              <p><strong>Deductions:</strong> {employee.deductions || 'N/A'}</p>
-              <p><strong>Overtime & Bonus:</strong> {employee.overtime_bonus || 'N/A'}</p>
-              <p><strong>Leave Entitlements:</strong> {employee.leave_entitlements}</p>
+                  <h3 className="employee-details-section-title">Compensation Details</h3>
+                  <div>
+                    <span className="employee-details-label">Gross Basic Salary:</span>
+                    <span className="employee-details-value">{employee.gross_salary}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Payment Method:</span>
+                    <span className="employee-details-value">{employee.payment_method}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Bank Details:</span>
+                    <span className="employee-details-value">{employee.bank_details}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Allowances:</span>
+                    <span className="employee-details-value">{employee.allowances || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Deductions:</span>
+                    <span className="employee-details-value">{employee.deductions || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Overtime & Bonus:</span>
+                    <span className="employee-details-value">{employee.overtime_bonus || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Leave Entitlements:</span>
+                    <span className="employee-details-value">{employee.leave_entitlements}</span>
+                  </div>
 
-              <h5 style={{ color: '#28a745' }} className="mt-4">Benefits & Insurance</h5>
-              <p><strong>Health Insurance:</strong> {employee.health_insurance || 'N/A'}</p>
-              <p><strong>Pension/Retirement Plan:</strong> {employee.pension_plan || 'N/A'}</p>
+                  <h3 className="employee-details-section-title">Benefits & Insurance</h3>
+                  <div>
+                    <span className="employee-details-label">Health Insurance:</span>
+                    <span className="employee-details-value">{employee.health_insurance || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Pension/Retirement Plan:</span>
+                    <span className="employee-details-value">{employee.pension_plan || 'N/A'}</span>
+                  </div>
 
-              <h5 style={{ color: '#28a745' }} className="mt-4">Additional Information</h5>
-              <p><strong>Educational Background:</strong> {employee.educational_background || 'N/A'}</p>
-              <p><strong>Professional Certifications:</strong> {employee.certifications || 'N/A'}</p>
-              <p><strong>Languages Spoken:</strong> {employee.languages_spoken || 'N/A'}</p>
-              <p><strong>Reference 1:</strong> {employee.reference1 || 'N/A'}</p>
-              <p><strong>Reference 2:</strong> {employee.reference2 || 'N/A'}</p>
+                  <h3 className="employee-details-section-title">Additional Information</h3>
+                  <div>
+                    <span className="employee-details-label">Educational Background:</span>
+                    <span className="employee-details-value">{employee.educational_background || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Professional Certifications:</span>
+                    <span className="employee-details-value">{employee.certifications || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Languages Spoken:</span>
+                    <span className="employee-details-value">{employee.languages_spoken || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Reference 1:</span>
+                    <span className="employee-details-value">{employee.reference1 || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Reference 2:</span>
+                    <span className="employee-details-value">{employee.reference2 || 'N/A'}</span>
+                  </div>
 
-              <h5 style={{ color: '#28a745' }} className="mt-4">Declaration</h5>
-              <p><strong>Declared By:</strong> {employee.declaration_name}</p>
-              <p><strong>Signature:</strong> {employee.declaration_signature || 'N/A'}</p>
-              <p><strong>Date:</strong> {employee.declaration_date}</p>
+                  <h3 className="employee-details-section-title">Declaration</h3>
+                  <div>
+                    <span className="employee-details-label">Declared By:</span>
+                    <span className="employee-details-value">{employee.declaration_name}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Signature:</span>
+                    <span className="employee-details-value">{employee.declaration_signature || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="employee-details-label">Date:</span>
+                    <span className="employee-details-value">{employee.declaration_date}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="card-footer text-center" style={{ backgroundColor: '#28a745', color: '#fff' }}>
-          <button className="btn btn-light" onClick={onBack}>Back to Employee List</button>
+          <div className="footer-btn-container">
+            <Link
+              to="/hr-management/employee-list"
+              className="back-btn"
+              onClick={onBack}
+            >
+              Back to List
+            </Link>
+            <button
+              className="delete-btn"
+              onClick={handleDelete}
+            >
+              Delete Employee
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

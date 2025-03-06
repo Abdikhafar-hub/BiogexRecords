@@ -4,56 +4,53 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 const customStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
   .leave-container {
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
-    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
-    padding: 2rem 1rem;
+    background: #f9fafb;
+    padding: 2rem 1.5rem;
   }
 
   .leave-card {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-    border: 2px solid transparent;
-    border-image: linear-gradient(90deg, #047857 0%, #28a745 100%) 1;
-    border-radius: 20px;
-    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
   }
 
   .leave-card:hover {
-    box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.15), -10px -10px 20px rgba(255, 255, 255, 0.7);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   }
 
   .leave-header {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
-    color: #fff;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
+    color: #ffffff;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
     padding: 1.5rem;
   }
 
   .leave-header-title {
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 1px;
+    font-size: 1.875rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
   }
 
   .leave-body {
-    padding: 2rem 1.5rem;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
+    padding: 1.5rem;
   }
 
   .leave-section-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: #047857;
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     margin-bottom: 1rem;
     position: relative;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
   }
 
   .leave-section-title::after {
@@ -61,60 +58,73 @@ const customStyles = `
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 50px;
-    height: 3px;
+    width: 40px;
+    height: 2px;
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
-    border-radius: 2px;
+    border-radius: 1px;
   }
 
   .leave-table {
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .leave-table th {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
-    color: #fff;
-    font-weight: 600;
+    color: #ffffff;
+    font-weight: 500;
+    vertical-align: middle;
   }
 
   .leave-table td {
-    color: #4b5563;
+    color: #374151;
     vertical-align: middle;
   }
 
   .leave-button {
-    font-weight: 600;
-    font-size: 1rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   .leave-button.primary {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
-    color: #fff;
+    color: #ffffff;
     border: none;
   }
 
   .leave-button.primary:hover {
     background: linear-gradient(90deg, #28a745 0%, #047857 100%);
-    box-shadow: 0 6px 16px rgba(4, 120, 87, 0.5);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(4, 120, 87, 0.1);
+    transform: translateY(-1px);
   }
 
   .leave-button.secondary {
-    background: transparent;
+    background: #ffffff;
     color: #047857;
-    border: 2px solid #047857;
+    border: 1px solid #047857;
   }
 
   .leave-button.secondary:hover {
-    background: rgba(4, 120, 87, 0.1);
-    box-shadow: 0 6px 16px rgba(4, 120, 87, 0.3);
-    transform: translateY(-2px);
+    background: #f3f4f6;
+    box-shadow: 0 4px 6px rgba(4, 120, 87, 0.05);
+    transform: translateY(-1px);
+  }
+
+  .leave-button.danger {
+    background: #dc3545;
+    color: #ffffff;
+    border: none;
+  }
+
+  .leave-button.danger:hover {
+    background: #c82333;
+    box-shadow: 0 4px 6px rgba(220, 53, 69, 0.1);
+    transform: translateY(-1px);
   }
 
   .leave-filter {
@@ -128,18 +138,18 @@ const customStyles = `
     border-radius: 8px;
     padding: 0.5rem;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
 
   .leave-filter select:focus {
     border-color: #047857;
-    box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.1);
+    box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.2);
     outline: none;
   }
 
   .leave-modal-header {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
-    color: #fff;
+    color: #ffffff;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
   }
@@ -156,18 +166,30 @@ const customStyles = `
   .leave-modal-footer {
     border-top: none;
     padding: 1rem;
+    justify-content: flex-end;
   }
 
   .form-error {
-    color: #dc3545;
-    font-size: 0.9rem;
+    color: #dc2626;
+    font-size: 0.875rem;
     font-weight: 500;
     margin: 1rem 0;
     padding: 0.75rem;
-    background: #f8d7da;
-    border-left: 4px solid #dc3545;
+    background: #fee2e2;
+    border-left: 4px solid #dc2626;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .no-records {
+    text-align: center;
+    color: #6b7280;
+    padding: 1rem;
+  }
+
+  .countdown {
+    font-weight: 500;
+    color: #dc3545;
   }
 `;
 
@@ -187,6 +209,9 @@ const LeaveAttendance = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Current date (March 06, 2025)
+  const currentDate = new Date('2025-03-06');
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -205,8 +230,9 @@ const LeaveAttendance = () => {
           .select('*');
         if (leaveError) throw leaveError;
         setLeaveRequests(leaveData);
+        console.log('Fetched leave requests:', leaveData); // Debug log
       } catch (err) {
-        setError('Failed to fetch data.');
+        setError('Failed to fetch data. Please try again later.');
         console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
@@ -227,7 +253,8 @@ const LeaveAttendance = () => {
     setNewRequest((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmitRequest = async () => {
+  const handleSubmitRequest = async (e) => {
+    e.preventDefault();
     const requiredFields = ['employeeId', 'startDate', 'endDate'];
     const emptyFields = requiredFields.filter((field) => !newRequest[field]);
 
@@ -237,7 +264,8 @@ const LeaveAttendance = () => {
     }
 
     try {
-      const selectedEmployee = employees.find(emp => emp.id === newRequest.employeeId);
+      console.log('Submitting request:', newRequest); // Debug log
+      const selectedEmployee = employees.find((emp) => emp.id === newRequest.employeeId);
       if (!selectedEmployee) throw new Error('Employee not found');
 
       const leaveData = {
@@ -254,9 +282,12 @@ const LeaveAttendance = () => {
         .insert([leaveData])
         .select()
         .single();
-      if (insertError) throw insertError;
+      if (insertError) {
+        throw new Error(`Failed to submit leave request: ${insertError.message}`);
+      }
 
-      setLeaveRequests((prev) => [...prev, data]);
+      console.log('Request submitted successfully:', data); // Debug log
+      setLeaveRequests((prev) => [...prev, data]); // Ensure state is updated
       setNewRequest({
         employeeId: '',
         employeeName: '',
@@ -268,7 +299,7 @@ const LeaveAttendance = () => {
       setError('');
       handleCloseModal();
     } catch (err) {
-      setError('Failed to submit leave request.');
+      setError(err.message);
       console.error('Error submitting leave request:', err);
     }
   };
@@ -277,31 +308,73 @@ const LeaveAttendance = () => {
     setFilterStatus(e.target.value);
   };
 
-  const filteredRequests = filterStatus === 'All'
-    ? leaveRequests
-    : leaveRequests.filter((request) => request.status === filterStatus);
-
-  // Mock data for attendance summary (could be fetched from Supabase in a real app)
-  const attendanceSummary = {
-    totalLeavesTaken: leaveRequests.length,
-    remainingLeaveBalance: 15,
-    sickLeavesTaken: leaveRequests.filter(req => req.type === 'Sick Leave').length,
-    annualLeavesTaken: leaveRequests.filter(req => req.type === 'Annual Leave').length,
+  const handleApprove = async (id) => {
+    const { error } = await supabase
+      .from('leave_requests')
+      .update({ status: 'Approved' })
+      .eq('id', id);
+    if (error) {
+      setError('Failed to approve leave request.');
+      console.error('Error approving request:', error);
+    } else {
+      setLeaveRequests((prev) =>
+        prev.map((req) => (req.id === id ? { ...req, status: 'Approved' } : req))
+      );
+    }
   };
 
-  // Mock data for recent attendance history (could be fetched from Supabase in a real app)
-  const attendanceHistory = [
-    { date: '2025-03-01', status: 'Present', hoursWorked: '8', notes: 'On time' },
-    { date: '2025-02-28', status: 'Absent', hoursWorked: '0', notes: 'Sick Leave' },
-    { date: '2025-02-27', status: 'Present', hoursWorked: '7', notes: 'Left early' },
-  ];
+  const handleReject = async (id) => {
+    const { error } = await supabase
+      .from('leave_requests')
+      .update({ status: 'Rejected' })
+      .eq('id', id);
+    if (error) {
+      setError('Failed to reject leave request.');
+      console.error('Error rejecting request:', error);
+    } else {
+      setLeaveRequests((prev) =>
+        prev.map((req) => (req.id === id ? { ...req, status: 'Rejected' } : req))
+      );
+    }
+  };
+
+  // Calculate days remaining for active leaves
+  const calculateDaysRemaining = (endDate) => {
+    const end = new Date(endDate);
+    const diffTime = end - currentDate;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  // Filter active and historical leave requests
+  const activeRequests = leaveRequests.filter((req) => {
+    const endDate = new Date(req.end_date);
+    return endDate >= currentDate && (req.status === 'Pending' || req.status === 'Approved');
+  });
+
+  const historicalRequests = leaveRequests.filter((req) => {
+    const endDate = new Date(req.end_date);
+    return endDate < currentDate || req.status === 'Rejected';
+  });
+
+  const filteredActiveRequests =
+    filterStatus === 'All'
+      ? activeRequests
+      : activeRequests.filter((request) => request.status === filterStatus);
+
+  const filteredHistoricalRequests =
+    filterStatus === 'All'
+      ? historicalRequests
+      : historicalRequests.filter((request) => request.status === filterStatus);
 
   const handleExportReport = () => {
-    alert('Exporting leave report... (This is a placeholder action)');
+    alert(
+      'Exporting leave report... (This is a placeholder action. Implement export logic here)'
+    );
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <p className="text-center">Loading...</p>;
+  if (error) return <p className="text-center text-danger">{error}</p>;
 
   return (
     <>
@@ -309,31 +382,11 @@ const LeaveAttendance = () => {
       <div className="leave-container">
         <Card className="leave-card">
           <Card.Header className="leave-header text-center">
-            <h2 className="leave-header-title">Leave & Attendance</h2>
+            <h2 className="leave-header-title">Leave Management</h2>
           </Card.Header>
           <Card.Body className="leave-body">
-            <h5 className="leave-section-title">Attendance Summary</h5>
-            <div className="mysary-info-row">
-              <div className="mysary-info-item">
-                <p className="mysary-info-label">Total Leaves Taken:</p>
-                <p className="mysary-info-value">{attendanceSummary.totalLeavesTaken} days</p>
-              </div>
-              <div className="mysary-info-item">
-                <p className="mysary-info-label">Remaining Leave Balance:</p>
-                <p className="mysary-info-value">{attendanceSummary.remainingLeaveBalance} days</p>
-              </div>
-              <div className="mysary-info-item">
-                <p className="mysary-info-label">Sick Leaves Taken:</p>
-                <p className="mysary-info-value">{attendanceSummary.sickLeavesTaken} days</p>
-              </div>
-              <div className="mysary-info-item">
-                <p className="mysary-info-label">Annual Leaves Taken:</p>
-                <p className="mysary-info-value">{attendanceSummary.annualLeavesTaken} days</p>
-              </div>
-            </div>
-
-            <h5 className="leave-section-title">Leave Requests</h5>
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <h5 className="leave-section-title">Active Leave Requests</h5>
+            <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="leave-filter">
                 <Form.Label className="me-2">Filter by Status:</Form.Label>
                 <Form.Select
@@ -347,14 +400,78 @@ const LeaveAttendance = () => {
                   <option value="Rejected">Rejected</option>
                 </Form.Select>
               </div>
-              <Button variant="success" className="leave-button primary" onClick={handleShowModal}>
+              <Button variant="primary" className="leave-button primary" onClick={handleShowModal}>
                 Add Leave Request
               </Button>
             </div>
-            {filteredRequests.length === 0 ? (
-              <p className="text-center text-muted">No leave requests found.</p>
+            {filteredActiveRequests.length === 0 ? (
+              <p className="no-records">No active leave requests found.</p>
             ) : (
-              <Table striped bordered hover className="leave-table">
+              <Table striped bordered hover responsive className="leave-table">
+                <thead>
+                  <tr>
+                    <th>Employee Name</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Type</th>
+                    <th>Days Remaining</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredActiveRequests.map((request) => {
+                    const daysRemaining = calculateDaysRemaining(request.end_date);
+                    console.log('Rendering link for employee_id:', request.employee_id); // Debug log
+                    return (
+                      <tr key={request.id}>
+                        <td>{request.employee_name}</td>
+                        <td>{new Date(request.start_date).toLocaleDateString()}</td>
+                        <td>{new Date(request.end_date).toLocaleDateString()}</td>
+                        <td>{request.type}</td>
+                        <td className="countdown">
+                          {daysRemaining > 0 ? `${daysRemaining} days` : 'Completed'}
+                        </td>
+                        <td>{request.status}</td>
+                        <td>
+                          {request.status === 'Pending' && (
+                            <>
+                              <Button
+                                className="leave-button primary me-2"
+                                onClick={() => handleApprove(request.id)}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                className="leave-button danger"
+                                onClick={() => handleReject(request.id)}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          <Link
+                            to="/hr-management/employee-list" // Points to employee list
+                            className="btn btn-sm leave-button secondary mt-2 d-block"
+                            onClick={(e) =>
+                              console.log('Link clicked, navigating to:', '/hr-management/employee-list')
+                            } // Debug log
+                          >
+                            View Employee
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            )}
+
+            <h5 className="leave-section-title">Leave History</h5>
+            {filteredHistoricalRequests.length === 0 ? (
+              <p className="no-records">No leave history found.</p>
+            ) : (
+              <Table striped bordered hover responsive className="leave-table">
                 <thead>
                   <tr>
                     <th>Employee Name</th>
@@ -362,55 +479,24 @@ const LeaveAttendance = () => {
                     <th>End Date</th>
                     <th>Type</th>
                     <th>Status</th>
-                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRequests.map((request) => (
+                  {filteredHistoricalRequests.map((request) => (
                     <tr key={request.id}>
                       <td>{request.employee_name}</td>
-                      <td>{request.start_date}</td>
-                      <td>{request.end_date}</td>
+                      <td>{new Date(request.start_date).toLocaleDateString()}</td>
+                      <td>{new Date(request.end_date).toLocaleDateString()}</td>
                       <td>{request.type}</td>
                       <td>{request.status}</td>
-                      <td>
-                        <Link
-                          to="/hr-management/employee-list"
-                          className="btn btn-sm leave-button primary"
-                        >
-                          View Employee
-                        </Link>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
               </Table>
             )}
 
-            <h5 className="leave-section-title">Recent Attendance History</h5>
-            <Table striped bordered hover className="leave-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Hours Worked</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attendanceHistory.map((record, index) => (
-                  <tr key={index}>
-                    <td>{record.date}</td>
-                    <td>{record.status}</td>
-                    <td>{record.hoursWorked}</td>
-                    <td>{record.notes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-
-            <div className="text-center mt-4 d-flex justify-content-center gap-3">
-              <Link to="/hr-management/leave-policy" className="btn leave-button secondary">
+            <div className="text-center mt-4">
+              <Link to="/hr-management/leave-policy" className="btn leave-button secondary me-2">
                 View Leave Policy
               </Link>
               <Button onClick={handleExportReport} className="leave-button primary">
@@ -420,21 +506,21 @@ const LeaveAttendance = () => {
           </Card.Body>
         </Card>
 
-        <Modal show={showModal} onHide={handleCloseModal}>
+        <Modal show={showModal} onHide={handleCloseModal} centered>
           <Modal.Header closeButton className="leave-modal-header">
-            <Modal.Title className="leave-modal-title">Add Leave Request</Modal.Title>
+            <Modal.Title className="leave-modal-title">Add New Leave Request</Modal.Title>
           </Modal.Header>
           <Modal.Body className="leave-modal-body">
             {error && <div className="form-error">{error}</div>}
-            <Form>
+            <Form onSubmit={handleSubmitRequest}>
               <Form.Group className="mb-3">
-                <Form.Label>Employee Name</Form.Label>
+                <Form.Label>Employee</Form.Label>
                 <Form.Control
                   as="select"
                   name="employeeId"
                   value={newRequest.employeeId}
                   onChange={(e) => {
-                    const selectedEmployee = employees.find(emp => emp.id === e.target.value);
+                    const selectedEmployee = employees.find((emp) => emp.id === e.target.value);
                     setNewRequest((prev) => ({
                       ...prev,
                       employeeId: e.target.value,
@@ -485,14 +571,14 @@ const LeaveAttendance = () => {
                   <option value="Paternity Leave">Paternity Leave</option>
                 </Form.Control>
               </Form.Group>
+              <Button variant="primary" type="submit" className="leave-button primary">
+                Submit
+              </Button>
             </Form>
           </Modal.Body>
           <Modal.Footer className="leave-modal-footer">
             <Button variant="secondary" className="leave-button secondary" onClick={handleCloseModal}>
-              Close
-            </Button>
-            <Button variant="success" className="leave-button primary" onClick={handleSubmitRequest}>
-              Submit Request
+              Cancel
             </Button>
           </Modal.Footer>
         </Modal>

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Added for navigation
+import { useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS (updated to match the screenshot and app style)
+// Custom CSS (unchanged from your previous version)
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -11,10 +11,10 @@ const customStyles = `
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
-    padding: 2rem 1rem;
+    padding: 1rem;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
   }
 
   .form-card {
@@ -25,7 +25,10 @@ const customStyles = `
     box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5);
     transition: all 0.3s ease;
     width: 100%;
-    max-width: 900px; /* Constrain width to match screenshot */
+    max-width: 90%;
+    max-height: calc(100vh - 2rem);
+    display: flex;
+    flex-direction: column;
   }
 
   .form-card:hover {
@@ -37,30 +40,30 @@ const customStyles = `
     color: #fff;
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
-    padding: 1.5rem;
+    padding: 1rem;
   }
 
   .form-header-title {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 700;
     letter-spacing: 1px;
   }
 
   .form-header-subtitle {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 400;
     letter-spacing: 0.5px;
   }
 
   .form-instruction {
     font-family: 'Poppins', sans-serif;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: #4b5563;
     background: #f1f5f9;
     border-left: 4px solid #047857;
-    padding: 0.75rem 1.5rem;
-    margin: 1rem 1.5rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     animation: fadeIn 1s ease-in-out forwards;
@@ -73,13 +76,13 @@ const customStyles = `
 
   .form-error {
     font-family: 'Poppins', sans-serif;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: #dc3545;
     background: #f8d7da;
     border-left: 4px solid #dc3545;
-    padding: 0.75rem 1.5rem;
-    margin: 1rem 1.5rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
@@ -87,19 +90,19 @@ const customStyles = `
   .form-body {
     background-color: #f8f9fa;
     color: #000;
-    padding: 2rem 1.5rem;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
   }
 
   .form-section-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: #047857;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
     position: relative;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
   }
 
   .form-section-title::after {
@@ -107,32 +110,34 @@ const customStyles = `
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 50px;
+    width: 40px;
     height: 3px;
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     border-radius: 2px;
   }
 
   .form-subsection-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #4b5563;
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   .form-label {
     font-weight: 500;
     color: #1f2937;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
   }
 
   .form-control, .form-select {
     border: 1px solid #d1d5db;
     border-radius: 8px;
-    padding: 0.75rem;
+    padding: 0.5rem;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    font-size: 0.9rem;
   }
 
   .form-control:focus, .form-select:focus {
@@ -144,6 +149,7 @@ const customStyles = `
   .form-control::placeholder {
     color: #9ca3af;
     font-style: italic;
+    font-size: 0.85rem;
   }
 
   .form-footer {
@@ -151,13 +157,13 @@ const customStyles = `
     color: #fff;
     border-bottom-left-radius: 16px;
     border-bottom-right-radius: 16px;
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   .form-button {
     font-weight: 600;
-    font-size: 1rem;
-    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
     border-radius: 9999px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
@@ -170,10 +176,38 @@ const customStyles = `
     box-shadow: 0 6px 16px rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
   }
+
+  @media (max-width: 768px) {
+    .form-card {
+      max-width: 100%;
+      max-height: calc(100vh - 1rem);
+    }
+
+    .form-body {
+      padding: 0.75rem;
+    }
+
+    .form-section-title {
+      font-size: 1.1rem;
+    }
+
+    .form-subsection-title {
+      font-size: 0.9rem;
+    }
+
+    .form-label {
+      font-size: 0.85rem;
+    }
+
+    .form-control, .form-select {
+      font-size: 0.85rem;
+      padding: 0.4rem;
+    }
+  }
 `;
 
 const EmployeeForm = ({ onSubmit }) => {
-  const navigate = useNavigate(); // Added for navigation after submission
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     dateOfBirth: '',
@@ -271,6 +305,22 @@ const EmployeeForm = ({ onSubmit }) => {
     setError('');
 
     try {
+      // Check if the employeeCode already exists
+      const { data: existingEmployee, error: checkError } = await supabase
+        .from('employees')
+        .select('employee_code')
+        .eq('employee_code', formData.employeeCode)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows found, which is okay
+        throw new Error('Error checking employee code: ' + checkError.message);
+      }
+
+      if (existingEmployee) {
+        setError('Employee Code already exists. Please use a unique code.');
+        return;
+      }
+
       // Upload profile picture to Supabase Storage if provided
       let profilePicUrl = null;
       if (files.profilePic) {
@@ -299,7 +349,7 @@ const EmployeeForm = ({ onSubmit }) => {
 
       // Prepare employee data for insertion
       const employeeData = {
-        user_id: userData.user.id, // Associate employee with the authenticated user
+        user_id: userData.user.id,
         full_name: formData.fullName,
         date_of_birth: formData.dateOfBirth,
         national_id: formData.nationalId,
@@ -343,7 +393,7 @@ const EmployeeForm = ({ onSubmit }) => {
       };
 
       // Insert employee data into Supabase
-      const { data, error: insertError } = await supabase
+      const { data: employeeInsertData, error: insertError } = await supabase
         .from('employees')
         .insert([employeeData])
         .select();
@@ -352,8 +402,31 @@ const EmployeeForm = ({ onSubmit }) => {
         throw new Error('Failed to create employee: ' + insertError.message);
       }
 
+      const newEmployeeId = employeeInsertData[0].id;
+
+      // Insert initial salary transaction into the remuneration table
+      const remunerationData = {
+        employee_id: newEmployeeId,
+        employee_name: formData.fullName,
+        gross_salary: formData.grossSalary,
+        deductions: formData.deductions || '0',
+        allowances: formData.allowances || '0',
+        overtime_bonus: formData.overtimeBonus || '0',
+        payment_method: formData.paymentMethod,
+        bank_details: formData.bankDetails, // Added bank_details field
+        created_at: new Date().toISOString(),
+      };
+
+      const { error: remunerationError } = await supabase
+        .from('remuneration')
+        .insert([remunerationData]);
+
+      if (remunerationError) {
+        throw new Error('Failed to create remuneration record: ' + remunerationError.message);
+      }
+
       // Call the onSubmit prop to notify parent component
-      onSubmit({ ...employeeData, id: data[0].id, profilePic: files.profilePic });
+      onSubmit({ ...employeeData, id: newEmployeeId, profilePic: files.profilePic });
 
       // Reset form
       setFormData({
@@ -427,7 +500,7 @@ const EmployeeForm = ({ onSubmit }) => {
                 <h5 className="form-section-title">Section 1: Personal Information</h5>
                 <hr style={{ borderColor: '#28a745' }} />
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Full Legal Name</Form.Label>
                     <Form.Control
                       type="text"
@@ -438,7 +511,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Date of Birth</Form.Label>
                     <Form.Control
                       type="date"
@@ -450,7 +523,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">National ID</Form.Label>
                     <Form.Control
                       type="text"
@@ -461,7 +534,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Tax ID</Form.Label>
                     <Form.Control
                       type="text"
@@ -474,7 +547,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Social Security Number</Form.Label>
                     <Form.Control
                       type="text"
@@ -485,7 +558,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Nationality</Form.Label>
                     <Form.Control
                       type="text"
@@ -498,7 +571,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Gender</Form.Label>
                     <Form.Select
                       name="gender"
@@ -512,7 +585,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       <option value="Other">Other</option>
                     </Form.Select>
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Marital Status</Form.Label>
                     <Form.Select
                       name="maritalStatus"
@@ -529,7 +602,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Permanent Address</Form.Label>
                     <Form.Control
                       type="text"
@@ -540,7 +613,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Current Address</Form.Label>
                     <Form.Control
                       type="text"
@@ -552,7 +625,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Phone Number</Form.Label>
                     <Form.Control
                       type="tel"
@@ -563,7 +636,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Email Address</Form.Label>
                     <Form.Control
                       type="email"
@@ -576,7 +649,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Emergency Contact</Form.Label>
                     <Form.Control
                       type="text"
@@ -593,7 +666,7 @@ const EmployeeForm = ({ onSubmit }) => {
                 <h5 className="form-section-title">Section 2: Employment Details</h5>
                 <hr style={{ borderColor: '#28a745' }} />
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Position</Form.Label>
                     <Form.Control
                       type="text"
@@ -604,7 +677,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Department</Form.Label>
                     <Form.Control
                       type="text"
@@ -617,7 +690,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Employment Type</Form.Label>
                     <Form.Select
                       name="employmentType"
@@ -632,7 +705,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       <option value="Intern">Intern</option>
                     </Form.Select>
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Start Date</Form.Label>
                     <Form.Control
                       type="date"
@@ -644,7 +717,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Work Location</Form.Label>
                     <Form.Control
                       type="text"
@@ -655,7 +728,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Reporting Manager</Form.Label>
                     <Form.Control
                       type="text"
@@ -668,7 +741,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Probation Period (Months)</Form.Label>
                     <Form.Control
                       type="text"
@@ -678,7 +751,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       placeholder="e.g., 3 months"
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Job Description</Form.Label>
                     <Form.Control
                       type="text"
@@ -691,7 +764,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Employee Code</Form.Label>
                     <Form.Control
                       type="text"
@@ -708,7 +781,7 @@ const EmployeeForm = ({ onSubmit }) => {
                 <h5 className="form-section-title">Section 3: Compensation Details</h5>
                 <hr style={{ borderColor: '#28a745' }} />
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Gross Salary</Form.Label>
                     <Form.Control
                       type="text"
@@ -719,7 +792,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Payment Method</Form.Label>
                     <Form.Select
                       name="paymentMethod"
@@ -736,7 +809,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Bank Details</Form.Label>
                     <Form.Control
                       type="text"
@@ -747,7 +820,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Allowances</Form.Label>
                     <Form.Control
                       type="text"
@@ -759,7 +832,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Deductions</Form.Label>
                     <Form.Control
                       type="text"
@@ -769,7 +842,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       placeholder="Enter Deductions"
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Overtime Bonus</Form.Label>
                     <Form.Control
                       type="text"
@@ -781,7 +854,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Leave Entitlements</Form.Label>
                     <Form.Control
                       type="text"
@@ -792,7 +865,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Health Insurance</Form.Label>
                     <Form.Control
                       type="text"
@@ -804,7 +877,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Pension Plan</Form.Label>
                     <Form.Control
                       type="text"
@@ -820,7 +893,7 @@ const EmployeeForm = ({ onSubmit }) => {
                 <h5 className="form-section-title">Section 4: Education and Skills</h5>
                 <hr style={{ borderColor: '#28a745' }} />
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Educational Background</Form.Label>
                     <Form.Control
                       type="text"
@@ -830,7 +903,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       placeholder="Enter Educational Background"
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Certifications</Form.Label>
                     <Form.Control
                       type="text"
@@ -842,7 +915,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Languages Spoken</Form.Label>
                     <Form.Control
                       type="text"
@@ -859,7 +932,7 @@ const EmployeeForm = ({ onSubmit }) => {
                 <hr style={{ borderColor: '#28a745' }} />
                 <h6 className="form-subsection-title">Reference 1</h6>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Reference 1 Details</Form.Label>
                     <Form.Control
                       type="text"
@@ -869,7 +942,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       placeholder="Name, Position, Contact"
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Reference 2 Details</Form.Label>
                     <Form.Control
                       type="text"
@@ -885,7 +958,7 @@ const EmployeeForm = ({ onSubmit }) => {
                 <h5 className="form-section-title">Section 6: Declaration</h5>
                 <hr style={{ borderColor: '#28a745' }} />
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Declaration Name</Form.Label>
                     <Form.Control
                       type="text"
@@ -896,7 +969,7 @@ const EmployeeForm = ({ onSubmit }) => {
                       required
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Declaration Signature</Form.Label>
                     <Form.Control
                       type="text"
@@ -908,7 +981,7 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Declaration Date</Form.Label>
                     <Form.Control
                       type="date"
@@ -924,14 +997,14 @@ const EmployeeForm = ({ onSubmit }) => {
                 <h5 className="form-section-title">Section 7: Document Uploads</h5>
                 <hr style={{ borderColor: '#28a745' }} />
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Profile Picture</Form.Label>
                     <Form.Control
                       type="file"
                       onChange={(e) => handleFileChange(e, 'profilePic')}
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Copy of ID/Passport</Form.Label>
                     <Form.Control
                       type="file"
@@ -940,14 +1013,14 @@ const EmployeeForm = ({ onSubmit }) => {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Certificates</Form.Label>
                     <Form.Control
                       type="file"
                       onChange={(e) => handleFileChange(e, 'certificates')}
                     />
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} sm={12} className="mb-3">
                     <Form.Label className="form-label">Other Documents</Form.Label>
                     <Form.Control
                       type="file"
