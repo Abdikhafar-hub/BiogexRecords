@@ -1,214 +1,196 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import { supabase } from './supabaseClient';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
-import HRManagement from './pages/HRManagement';
-import CustomerRegistration from './pages/CustomerRegistration';
+import CustomerAccountForm from './components/CustomerAccountForm';
 import EmployeeForm from './components/EmployeeForm';
 import EmployeeList from './components/EmployeeList';
 import EmployeeDetails from './components/EmployeeDetails';
-import Remuneration from './components/Remuneration';
-import Salaries from './components/Salaries';
+import HRActions from './components/HRActions';
 import LeaveAttendance from './components/LeaveAttendance';
+import Separation from './components/Separation';
+import Documents from './components/Documents';
+import CustomerList from './components/CustomerList';
+import Remuneration from './components/Remuneration';
 import Performance from './components/Performance';
 import Finance from './components/Finance';
 import Trainings from './components/Trainings';
-import HRActions from './components/HRActions';
-import Separation from './components/Separation';
-import Documents from './components/Documents';
 import Messenger from './components/Messenger';
+import SidebarComponent from './components/SidebarComponent';
+import HRManagementDashboard from './pages/HRManagementDashboard';
 
-function App() {
-  const [employees, setEmployees] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+// Custom CSS to ensure sidebar doesn't affect other routes
+const globalStyles = `
+  .app-container {
+    min-height: 100vh;
+    width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .sidebar-container {
+    width: 250px;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+  }
+
+  .main-content {
+    margin-left: 0; /* Default for routes without sidebar */
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .main-content.with-sidebar {
+    margin-left: 250px; /* Adjust for sidebar width */
+    width: calc(100% - 250px);
+  }
+`;
+
+const AppContent = () => {
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [leaveRequests, setLeaveRequests] = useState([]);
-  const [trainings, setTrainings] = useState([]);
-  const [hrActions, setHRActions] = useState([]);
-  const [messages, setMessages] = useState([]);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
-  const addEmployee = (employee) => {
-    setEmployees((prev) => [...prev, employee]);
-  };
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsAuthenticated(true);
+      }
+    };
 
-  const handleSelectEmployee = (employee) => {
-    setSelectedEmployee(employee);
-  };
+    checkSession();
 
-  const handleBackToList = () => {
-    setSelectedEmployee(null);
-  };
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        setIsAuthenticated(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        setIsAdminAuthenticated(false);
+      }
+    });
+  }, []);
 
-  const addLeaveRequest = (request) => {
-    setLeaveRequests((prev) => [...prev, request]);
-  };
+  const handleLogin = () => setIsAuthenticated(true);
+  const handleAdminLogin = () => setIsAdminAuthenticated(true);
+  const handleSelectEmployee = (employee) => setSelectedEmployee(employee);
 
-  const addTraining = (training) => {
-    setTrainings((prev) => [...prev, training]);
-  };
-
-  const addHRAction = (action) => {
-    setHRActions((prev) => [...prev, action]);
-  };
-
-  const addMessage = (message) => {
-    setMessages((prev) => [...prev, message]);
-  };
-
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
+  // Show sidebar only for /hr-management/* routes
+  const showSidebar = isAdminAuthenticated && location.pathname.startsWith('/hr-management');
 
   return (
-    <Router>
-      <div className="container-fluid">
-        <div className="row">
-          <div className={isAuthenticated ? 'col-md-12 p-0' : 'col-md-12 p-3'}>
-            <Routes>
-              {/* Login Route */}
-              <Route
-                path="/"
-                element={
-                  isAuthenticated ? (
-                    <Navigate to="/dashboard" />
-                  ) : (
-                    <Login onLogin={handleLogin} />
-                  )
-                }
-              />
-              {/* Signup Route */}
-              <Route
-                path="/signup"
-                element={
-                  isAuthenticated ? (
-                    <Navigate to="/dashboard" />
-                  ) : (
-                    <Signup />
-                  )
-                }
-              />
-              {/* Dashboard Route */}
-              <Route
-                path="/dashboard"
-                element={
-                  isAuthenticated ? (
-                    <Dashboard
-                      employees={employees}
-                      leaveRequests={leaveRequests}
-                      trainings={trainings}
-                      hrActions={hrActions}
-                    />
-                  ) : (
-                    <Navigate to="/" />
-                  )
-                }
-              />
-              {/* HR Management Routes */}
-              <Route
-                path="/hr-management"
-                element={
-                  isAuthenticated ? <HRManagement /> : <Navigate to="/" />
-                }
-              >
-                <Route
-                  path="create-employee"
-                  element={<EmployeeForm onSubmit={addEmployee} />}
-                />
-                <Route
-                  path="employee-list"
-                  element={
-                    selectedEmployee ? (
-                      <EmployeeDetails employee={selectedEmployee} onBack={handleBackToList} />
-                    ) : (
-                      <EmployeeList employees={employees} onSelectEmployee={handleSelectEmployee} />
-                    )
-                  }
-                />
-                <Route
-                  index
-                  element={<EmployeeList employees={employees} onSelectEmployee={handleSelectEmployee} />}
-                />
-                <Route
-                  path="remuneration"
-                  element={<Remuneration employees={employees} />}
-                />
-                <Route
-                  path="salaries"
-                  element={<Salaries employees={employees} />}
-                />
-                <Route
-                  path="leave-attendance"
-                  element={
-                    <LeaveAttendance
-                      employees={employees}
-                      leaveRequests={leaveRequests}
-                      addLeaveRequest={addLeaveRequest}
-                    />
-                  }
-                />
-                <Route
-                  path="performance"
-                  element={<Performance employees={employees} />}
-                />
-                <Route
-                  path="finance"
-                  element={<Finance employees={employees} />}
-                />
-                <Route
-                  path="trainings"
-                  element={
-                    <Trainings
-                      employees={employees}
-                      trainings={trainings}
-                      addTraining={addTraining}
-                    />
-                  }
-                />
-                <Route
-                  path="hr-actions"
-                  element={
-                    <HRActions
-                      employees={employees}
-                      hrActions={hrActions}
-                      addHRAction={addHRAction}
-                    />
-                  }
-                />
-                <Route
-                  path="separation"
-                  element={<Separation employees={employees} hrActions={hrActions} />}
-                />
-                <Route
-                  path="documents"
-                  element={<Documents employees={employees} />}
-                />
-                <Route
-                  path="messenger"
-                  element={
-                    <Messenger
-                      employees={employees}
-                      messages={messages}
-                      addMessage={addMessage}
-                    />
-                  }
-                />
-              </Route>
-              {/* Customer Registration Route */}
-              <Route
-                path="/customer-registration"
-                element={
-                  isAuthenticated ? <CustomerRegistration /> : <Navigate to="/" />
-                }
-              />
-              {/* Redirect unknown routes */}
-              <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/"} />} />
-            </Routes>
+    <>
+      <style>{globalStyles}</style>
+      <div className="app-container">
+        {showSidebar && (
+          <div className="sidebar-container">
+            <SidebarComponent />
           </div>
+        )}
+        <div className={`main-content ${showSidebar ? 'with-sidebar' : ''}`}>
+          <Routes>
+            <Route path="/" element={<Login onLogin={handleLogin} />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/admin-login" element={<AdminLogin onAdminLogin={handleAdminLogin} />} />
+            <Route
+              path="/customer-registration-form"
+              element={isAuthenticated ? <CustomerAccountForm /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/dashboard"
+              element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/hr-management"
+              element={isAdminAuthenticated ? <HRManagementDashboard /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/create-employee"
+              element={
+                isAdminAuthenticated ? (
+                  <EmployeeForm onSubmit={(data) => console.log(data)} />
+                ) : (
+                  <Navigate to="/admin-login" />
+                )
+              }
+            />
+            <Route
+              path="/hr-management/employee-list"
+              element={
+                isAdminAuthenticated ? (
+                  selectedEmployee ? (
+                    <EmployeeDetails employee={selectedEmployee} onBack={() => setSelectedEmployee(null)} />
+                  ) : (
+                    <EmployeeList onSelectEmployee={handleSelectEmployee} />
+                  )
+                ) : (
+                  <Navigate to="/admin-login" />
+                )
+              }
+            />
+            <Route
+              path="/hr-management/customer-list"
+              element={isAdminAuthenticated ? <CustomerList /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/remuneration"
+              element={isAdminAuthenticated ? <Remuneration /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/performance"
+              element={isAdminAuthenticated ? <Performance /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/finance"
+              element={isAdminAuthenticated ? <Finance /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/trainings"
+              element={isAdminAuthenticated ? <Trainings /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/hr-actions"
+              element={isAdminAuthenticated ? <HRActions /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/leave-attendance"
+              element={isAdminAuthenticated ? <LeaveAttendance /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/separation"
+              element={isAdminAuthenticated ? <Separation /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/documents"
+              element={isAdminAuthenticated ? <Documents /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/hr-management/messenger"
+              element={isAdminAuthenticated ? <Messenger /> : <Navigate to="/admin-login" />}
+            />
+            <Route
+              path="/customer-registration"
+              element={isAdminAuthenticated ? <CustomerList /> : <Navigate to="/admin-login" />}
+            />
+          </Routes>
         </div>
       </div>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
-}
+};
 
 export default App;

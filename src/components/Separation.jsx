@@ -1,38 +1,126 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
-const Separation = ({ employees, hrActions }) => {
+const Separation = () => {
+  const [employees, setEmployees] = useState([]);
   const [separations, setSeparations] = useState([]);
+  const [hrActions, setHRActions] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newSeparation, setNewSeparation] = useState({
+    employeeId: '',
     employeeName: '',
     type: 'Resignation',
     date: '',
     exitInterview: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch employees
+        const { data: employeesData, error: employeesError } = await supabase
+          .from('employees')
+          .select('*');
+        if (employeesError) throw employeesError;
+        setEmployees(employeesData);
+
+        // Fetch HR actions (for terminations)
+        const { data: actionsData, error: actionsError } = await supabase
+          .from('hr_actions')
+          .select('*')
+          .eq('action', 'Termination');
+        if (actionsError) throw actionsError;
+        setHRActions(actionsData);
+
+        // Fetch separations
+        const { data: separationsData, error: separationsError } = await supabase
+          .from('separations')
+          .select('*');
+        if (separationsError) throw separationsError;
+        setSeparations(separationsData);
+      } catch (err) {
+        setError('Failed to fetch data.');
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleShowModal = () => setShowModal(true);
-  const handleCloseModal = () => setShowModal(false);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setError('');
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewSeparation((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmitSeparation = () => {
-    setSeparations((prev) => [...prev, newSeparation]);
-    setNewSeparation({
-      employeeName: '',
-      type: 'Resignation',
-      date: '',
-      exitInterview: '',
-    });
-    handleCloseModal();
+  const handleSubmitSeparation = async () => {
+    const requiredFields = ['employeeId', 'type', 'date'];
+    const emptyFields = requiredFields.filter((field) => !newSeparation[field]);
+
+    if (emptyFields.length > 0) {
+      setError(`Please fill in all required fields: ${emptyFields.join(', ')}`);
+      return;
+    }
+
+    try {
+      const selectedEmployee = employees.find(emp => emp.id === newSeparation.employeeId);
+      if (!selectedEmployee) throw new Error('Employee not found');
+
+      const separationData = {
+        employee_id: newSeparation.employeeId,
+        employee_name: selectedEmployee.full_name,
+        type: newSeparation.type,
+        date: newSeparation.date,
+        exit_interview: newSeparation.exitInterview,
+      };
+
+      const { data, error: insertError } = await supabase
+        .from('separations')
+        .insert([separationData])
+        .select()
+        .single();
+      if (insertError) throw insertError;
+
+      setSeparations((prev) => [...prev, data]);
+      setNewSeparation({
+        employeeId: '',
+        employeeName: '',
+        type: 'Resignation',
+        date: '',
+        exitInterview: '',
+      });
+      setError('');
+      handleCloseModal();
+    } catch (err) {
+      setError('Failed to submit separation.');
+      console.error('Error submitting separation:', err);
+    }
   };
 
-  // Filter HR actions for terminations
-  const terminations = hrActions.filter((action) => action.action === 'Termination');
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
+  const terminations = hrActions.map((action) => ({
+    id: action.id,
+    employeeId: action.employee_id,
+    employeeName: action.employee_name,
+    type: 'Termination',
+    date: action.date,
+    exitInterview: action.details,
+  }));
 
   return (
     <div className="container my-5">
@@ -58,13 +146,8 @@ const Separation = ({ employees, hrActions }) => {
                 </tr>
               </thead>
               <tbody>
-                {[...separations, ...terminations.map((action) => ({
-                  employeeName: action.employeeName,
-                  type: 'Termination',
-                  date: action.date,
-                  exitInterview: action.details,
-                }))].map((separation, index) => (
-                  <tr key={index}>
+                {[...separations, ...terminations].map((separation) => (
+                  <tr key={separation.id}>
                     <td>{separation.employeeName}</td>
                     <td>{separation.type}</td>
                     <td>{separation.date}</td>
@@ -85,26 +168,33 @@ const Separation = ({ employees, hrActions }) => {
         </Card.Body>
       </Card>
 
-      {/* Modal for Adding Separation */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>Add Separation</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          {error && <div style={{ color: 'red' }}>{error}</div>}
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Employee Name</Form.Label>
               <Form.Control
                 as="select"
-                name="employeeName"
-                value={newSeparation.employeeName}
-                onChange={handleInputChange}
+                name="employeeId"
+                value={newSeparation.employeeId}
+                onChange={(e) => {
+                  const selectedEmployee = employees.find(emp => emp.id === e.target.value);
+                  setNewSeparation((prev) => ({
+                    ...prev,
+                    employeeId: e.target.value,
+                    employeeName: selectedEmployee ? selectedEmployee.full_name : '',
+                  }));
+                }}
                 required
               >
                 <option value="">Select Employee</option>
                 {employees.map((emp) => (
-                  <option key={emp.employeeCode} value={emp.fullName}>
-                    {emp.fullName}
+                  <option key={emp.id} value={emp.id}>
+                    {emp.full_name}
                   </option>
                 ))}
               </Form.Control>

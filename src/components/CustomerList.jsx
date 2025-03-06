@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient'; // Import Supabase client
 
-const EmployeeList = ({ onSelectEmployee }) => {
-  const [employees, setEmployees] = useState([]);
+const CustomerList = () => {
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchCustomers = async () => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('employees')
+          .from('customers')
           .select('*')
           .order('created_at', { ascending: false });
 
         if (error) {
-          throw new Error('Failed to fetch employees: ' + error.message);
+          throw new Error('Failed to fetch customers: ' + error.message);
         }
 
-        setEmployees(data || []);
+        setCustomers(data || []);
       } catch (err) {
         setError(err.message);
         console.error(err);
@@ -28,7 +28,7 @@ const EmployeeList = ({ onSelectEmployee }) => {
       }
     };
 
-    fetchEmployees();
+    fetchCustomers();
   }, []);
 
   if (loading) return <p className="text-center">Loading...</p>;
@@ -38,41 +38,32 @@ const EmployeeList = ({ onSelectEmployee }) => {
     <div className="container my-5">
       <div className="card shadow" style={{ border: '2px solid #28a745', backgroundColor: '#fff' }}>
         <div className="card-header text-center" style={{ backgroundColor: '#28a745', color: '#fff' }}>
-          <h2>Employee List</h2>
+          <h2>Customer List</h2>
         </div>
         <div className="card-body">
-          {employees.length === 0 ? (
-            <p className="text-center">No employees found.</p>
+          {customers.length === 0 ? (
+            <p className="text-center">No customers found.</p>
           ) : (
             <table className="table table-bordered">
               <thead>
                 <tr>
                   <th>#</th>
                   <th>Full Name</th>
+                  <th>Business Name</th>
+                  <th>Contact Person</th>
                   <th>Email</th>
                   <th>Phone Number</th>
-                  <th>Position</th>
-                  <th>Department</th>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {employees.map((employee, index) => (
-                  <tr key={employee.id}>
+                {customers.map((customer, index) => (
+                  <tr key={customer.id}>
                     <td>{index + 1}</td>
-                    <td>{employee.full_name}</td>
-                    <td>{employee.email}</td>
-                    <td>{employee.phone_number}</td>
-                    <td>{employee.position}</td>
-                    <td>{employee.department}</td>
-                    <td>
-                      <button
-                        className="btn btn-success btn-sm"
-                        onClick={() => onSelectEmployee(employee)}
-                      >
-                        View Details
-                      </button>
-                    </td>
+                    <td>{customer.full_name}</td>
+                    <td>{customer.business_name}</td>
+                    <td>{customer.contact_person}</td>
+                    <td>{customer.email_address}</td>
+                    <td>{customer.phone_number}</td>
                   </tr>
                 ))}
               </tbody>
@@ -84,4 +75,4 @@ const EmployeeList = ({ onSelectEmployee }) => {
   );
 };
 
-export default EmployeeList;
+export default CustomerList;
