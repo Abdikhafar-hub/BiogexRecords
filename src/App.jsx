@@ -106,8 +106,24 @@ const AppContent = () => {
               path="/dashboard"
               element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />}
             />
+            {/* Changed default /hr-management to show EmployeeList */}
             <Route
               path="/hr-management"
+              element={
+                isAdminAuthenticated ? (
+                  selectedEmployee ? (
+                    <EmployeeDetails employee={selectedEmployee} onBack={() => setSelectedEmployee(null)} />
+                  ) : (
+                    <EmployeeList onSelectEmployee={handleSelectEmployee} />
+                  )
+                ) : (
+                  <Navigate to="/admin-login" />
+                )
+              }
+            />
+            {/* Optional: Move HRManagementDashboard to a sub-route */}
+            <Route
+              path="/hr-management/dashboard"
               element={isAdminAuthenticated ? <HRManagementDashboard /> : <Navigate to="/admin-login" />}
             />
             <Route
