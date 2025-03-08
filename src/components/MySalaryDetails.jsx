@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
 import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import jsPDF from 'jspdf';
 
 // Custom CSS for styling the details view
 const customStyles = `
@@ -175,7 +176,7 @@ const customStyles = `
   }
 `;
 
-const MySaryDetails = () => {
+const MySalaryDetails = () => {
   const { employeeId } = useParams();
   const [employee, setEmployee] = useState(null);
   const [recentTransactions, setRecentTransactions] = useState([]);
@@ -259,7 +260,172 @@ const MySaryDetails = () => {
   const netSalary = salary - deductions;
 
   const handleDownloadPayslip = () => {
-    alert('Downloading payslip... (This is a placeholder action)');
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    let yPosition = margin;
+
+    // Helper function to add text and update yPosition
+    const addText = (text, x, y, fontSize = 12, style = 'normal', align = 'left') => {
+      doc.setFont('helvetica', style);
+      doc.setFontSize(fontSize);
+      doc.text(text, x, y, { align });
+      return y + fontSize * 0.5; // Adjust yPosition for next line
+    };
+
+    // Helper function to draw a horizontal line
+    const drawLine = (y, thickness = 0.5, color = [4, 120, 87]) => {
+      doc.setLineWidth(thickness);
+      doc.setDrawColor(...color); // Green color (#047857)
+      doc.line(margin + 2, y, pageWidth - margin - 2, y);
+      return y + 2; // Adjust yPosition
+    };
+
+    // Header Section
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(4, 120, 87); // Green color
+    yPosition = addText('Payslip', margin + 5, yPosition);
+    doc.setTextColor(0, 0, 0); // Reset to black
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    yPosition = addText(`PS-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}`, margin + 5, yPosition);
+    yPosition = addText(`Pay Date: ${new Date().toLocaleDateString()}`, margin + 5, yPosition);
+    yPosition = addText(`Pay Period: ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}`, margin + 5, yPosition);
+
+    // Company Details (right side)
+    const companyX = pageWidth - margin - 60; // Adjust for right alignment
+    yPosition = margin; // Reset yPosition for company details
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    yPosition = addText('BIOGEX PHARMA', companyX, yPosition);
+    doc.setFont('helvetica', 'normal');
+    yPosition = addText('OFFICE 7, THE CLOSE', companyX, yPosition);
+    yPosition = addText('NGARA ROAD, NAIROBI', companyX, yPosition);
+    yPosition = addText('KENYA', companyX, yPosition);
+    yPosition = addText('info@biogex.co.ke', companyX, yPosition);
+    yPosition = addText('www.biogex.co.ke', companyX, yPosition);
+
+    // Logo Placeholder (top right)
+    // const logoBase64 = 'data:image/png;base64,...'; // Replace with actual base64 string
+    // doc.addImage(logoBase64, 'PNG', pageWidth - margin - 30, margin, 30, 30); // Top right, 30x30 mm
+    yPosition += 35; // Space for logo
+
+    // Employee and Company Details
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(4, 120, 87);
+    yPosition = addText('Employee', margin + 5, yPosition);
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    yPosition = addText(`${employee.fullName}`, margin + 5, yPosition);
+    yPosition = addText(`Employee ID: ${employee.employeeCode || 'N/A'}`, margin + 5, yPosition);
+    yPosition = addText(`Email: ${employee.email}`, margin + 5, yPosition);
+    yPosition = addText(`Position: ${employee.position}`, margin + 5, yPosition);
+    yPosition = addText(`Tax Code: N/A`, margin + 5, yPosition); // Placeholder
+    yPosition = addText(`National Insurance Number: N/A`, margin + 5, yPosition); // Placeholder
+
+    // Company Details (already added in the header on the right)
+    yPosition += 5;
+
+    // Payment Details
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(4, 120, 87);
+    yPosition = addText('Payment Details', margin + 5, yPosition);
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    yPosition = addText('Bank Transfer', margin + 5, yPosition);
+    yPosition = drawLine(yPosition);
+
+    // Earnings and Deductions Table
+    const headers = ['Earnings', 'Quantity', 'Rate', 'Amount'];
+    const columnWidths = [60, 30, 40, 40];
+    let currentX = margin + 5;
+
+    // Draw table headers (Earnings)
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    headers.forEach((header, index) => {
+      doc.setFillColor(4, 120, 87); // Green background
+      doc.rect(currentX, yPosition - 5, columnWidths[index], 10, 'F');
+      doc.setTextColor(255, 255, 255); // White text
+      doc.text(header, currentX + 2, yPosition);
+      currentX += columnWidths[index];
+    });
+    doc.setTextColor(0, 0, 0); // Reset to black
+    yPosition += 10;
+
+    // Earnings Row (Basic Salary)
+    currentX = margin + 5;
+    const earningsData = [
+      ['Basic Salary', '1', salary.toFixed(2), salary.toFixed(2)],
+    ];
+    earningsData.forEach((row) => {
+      row.forEach((data, colIndex) => {
+        doc.setFillColor(245, 245, 245); // Light gray background
+        doc.rect(currentX, yPosition - 5, columnWidths[colIndex], 10, 'F');
+        doc.setLineWidth(0.2);
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(currentX, yPosition - 5, columnWidths[colIndex], 10);
+        doc.text(data, currentX + 2, yPosition);
+        currentX += columnWidths[colIndex];
+      });
+      yPosition += 10;
+    });
+
+    yPosition += 2; // Space before Deductions
+
+    // Deductions Table
+    currentX = margin + 5;
+    doc.setFont('helvetica', 'bold');
+    headers[0] = 'Deductions';
+    headers.forEach((header, index) => {
+      doc.setFillColor(4, 120, 87); // Green background
+      doc.rect(currentX, yPosition - 5, columnWidths[index], 10, 'F');
+      doc.setTextColor(255, 255, 255); // White text
+      doc.text(header, currentX + 2, yPosition);
+      currentX += columnWidths[index];
+    });
+    doc.setTextColor(0, 0, 0); // Reset to black
+    yPosition += 10;
+
+    // Deductions Row (Overall Deductions)
+    const deductionsData = [
+      ['Deductions', '1', deductions.toFixed(2), deductions.toFixed(2)],
+    ];
+    deductionsData.forEach((row) => {
+      currentX = margin + 5;
+      row.forEach((data, colIndex) => {
+        doc.setFillColor(245, 245, 245); // Light gray background
+        doc.rect(currentX, yPosition - 5, columnWidths[colIndex], 10, 'F');
+        doc.setLineWidth(0.2);
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(currentX, yPosition - 5, columnWidths[colIndex], 10);
+        doc.text(data, currentX + 2, yPosition);
+        currentX += columnWidths[colIndex];
+      });
+      yPosition += 10;
+    });
+
+    // Total Pay
+    yPosition += 5;
+    doc.setFont('helvetica', 'bold');
+    currentX = margin + 5 + columnWidths[0] + columnWidths[1] + columnWidths[2];
+    doc.text('Total Pay', currentX, yPosition);
+    doc.text(netSalary.toFixed(2), currentX + columnWidths[3] - 10, yPosition, { align: 'right' });
+    yPosition += 15;
+
+    // Note
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Note: This document is automatically generated and does not require a signature.', margin + 5, pageHeight - margin - 5);
+
+    // Download the PDF
+    doc.save(`Payslip_${employee.fullName}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -395,4 +561,4 @@ const MySaryDetails = () => {
   );
 };
 
-export default MySaryDetails;
+export default MySalaryDetails;
