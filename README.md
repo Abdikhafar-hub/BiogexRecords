@@ -1,4 +1,4 @@
-# Biogex Pha
+# Biogex Phar
 
 This repository contains the source code for the Biogex Pharma web application, built using React and Vite.
 
