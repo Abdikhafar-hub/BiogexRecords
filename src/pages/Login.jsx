@@ -3,7 +3,7 @@ import { useNavigate, NavLink } from 'react-router-dom';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
 import { supabase } from '../supabaseClient';
 
-// Import the logo (adjust the path as needed)
+// Import the logo
 import BiogexLogo from '../assets/biogexlogo.jpeg';
 
 // Custom CSS for styling
@@ -16,7 +16,7 @@ const customStyles = `
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #fff; /* Match the white background in the screenshot */
+    background: #fff;
     padding: 0;
     margin: 0;
     width: 100vw;
@@ -41,7 +41,6 @@ const customStyles = `
   }
 
   .login-title {
-    font-family: 'Poppins', sans-serif;
     font-size: 2rem;
     font-weight: 700;
     color: #047857;
@@ -50,7 +49,6 @@ const customStyles = `
   }
 
   .error-message {
-    font-family: 'Poppins', sans-serif;
     font-size: 0.9rem;
     font-weight: 500;
     margin-top: 1rem;
@@ -73,12 +71,12 @@ const customStyles = `
     transform: translateY(-2px);
   }
 
-  .signup-link {
+  .signup-link, .forgot-password-link {
     color: #28a745;
     text-decoration: none;
   }
 
-  .signup-link:hover {
+  .signup-link:hover, .forgot-password-link:hover {
     text-decoration: underline;
   }
 `;
@@ -96,7 +94,6 @@ const Login = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      // Attempt to log in with Supabase Auth
       const { data, error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -106,15 +103,11 @@ const Login = ({ onLogin }) => {
         throw new Error(loginError.message || 'Invalid email or password');
       }
 
-      // Ensure user data is available
       if (!data.user) {
         throw new Error('Login failed: No user data returned');
       }
 
-      // Call the onLogin function to set isAuthenticated to true
       onLogin();
-
-      // Navigate to dashboard
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'An error occurred during login');
@@ -129,12 +122,10 @@ const Login = ({ onLogin }) => {
       <div className="login-container">
         <Card className="login-card">
           <Card.Body>
-            {/* Logo above the title */}
             <div className="text-center mb-3">
               <img src={BiogexLogo} alt="Biogex Pharma Logo" className="login-logo" />
             </div>
 
-            {/* Title */}
             <h2 className="login-title text-center">Login to Biogex</h2>
 
             {error && (
@@ -176,11 +167,17 @@ const Login = ({ onLogin }) => {
                 {loading ? 'Signing in...' : 'Sign in'}
               </Button>
             </Form>
+
             <div className="text-center mt-3">
               <p>
                 Don’t have an account?{' '}
                 <NavLink to="/signup" className="signup-link">
                   Sign up
+                </NavLink>
+              </p>
+              <p>
+                <NavLink to="/forgot-password" className="forgot-password-link">
+                  Forgot Password?
                 </NavLink>
               </p>
             </div>

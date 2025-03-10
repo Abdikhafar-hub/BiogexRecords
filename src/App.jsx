@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+
+// Import pages and components
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import UpdatePassword from './pages/UpdatePassword';
 import Dashboard from './pages/Dashboard';
+import HRManagementDashboard from './pages/HRManagementDashboard';
+import SidebarComponent from './components/SidebarComponent';
 import CustomerAccountForm from './components/CustomerAccountForm';
 import EmployeeForm from './components/EmployeeForm';
 import EmployeeList from './components/EmployeeList';
@@ -15,16 +21,14 @@ import Separation from './components/Separation';
 import Documents from './components/Documents';
 import CustomerList from './components/CustomerList';
 import CustomerDetails from './components/CustomerDetails';
-import Remuneration from './components/Remuneration'; // Renamed from MySaryList
-import MySalaryDetails from './components/MySalaryDetails'; // Renamed from MySaryDetails
+import Remuneration from './components/Remuneration';
+import MySalaryDetails from './components/MySalaryDetails';
 import Performance from './components/Performance';
 import Finance from './components/Finance';
 import Trainings from './components/Trainings';
 import Messenger from './components/Messenger';
-import SidebarComponent from './components/SidebarComponent';
-import HRManagementDashboard from './pages/HRManagementDashboard';
 
-// Custom CSS to ensure sidebar doesn't affect other routes
+// Global CSS
 const globalStyles = `
   .app-container {
     min-height: 100vh;
@@ -68,7 +72,6 @@ const AppContent = () => {
     };
 
     checkSession();
-
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
         setIsAuthenticated(true);
@@ -83,125 +86,43 @@ const AppContent = () => {
   const handleAdminLogin = () => setIsAdminAuthenticated(true);
   const handleSelectEmployee = (employee) => setSelectedEmployee(employee);
 
-  // Show sidebar only for /hr-management/* routes
   const showSidebar = isAdminAuthenticated && location.pathname.startsWith('/hr-management');
 
   return (
     <>
       <style>{globalStyles}</style>
       <div className="app-container">
-        {showSidebar && (
-          <div className="sidebar-container">
-            <SidebarComponent />
-          </div>
-        )}
+        {showSidebar && <div className="sidebar-container"><SidebarComponent /></div>}
         <div className={`main-content ${showSidebar ? 'with-sidebar' : ''}`}>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Login onLogin={handleLogin} />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/admin-login" element={<AdminLogin onAdminLogin={handleAdminLogin} />} />
-            <Route
-              path="/customer-registration-form"
-              element={isAuthenticated ? <CustomerAccountForm /> : <Navigate to="/" />}
-            />
-            <Route
-              path="/dashboard"
-              element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />}
-            />
-            <Route
-              path="/hr-management"
-              element={
-                isAdminAuthenticated ? (
-                  selectedEmployee ? (
-                    <EmployeeDetails employee={selectedEmployee} onBack={() => setSelectedEmployee(null)} />
-                  ) : (
-                    <EmployeeList onSelectEmployee={handleSelectEmployee} />
-                  )
-                ) : (
-                  <Navigate to="/admin-login" />
-                )
-              }
-            />
-            <Route
-              path="/hr-management/dashboard"
-              element={isAdminAuthenticated ? <HRManagementDashboard /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/create-employee"
-              element={
-                isAdminAuthenticated ? (
-                  <EmployeeForm onSubmit={(data) => console.log(data)} />
-                ) : (
-                  <Navigate to="/admin-login" />
-                )
-              }
-            />
-            <Route
-              path="/hr-management/employee-list"
-              element={
-                isAdminAuthenticated ? (
-                  selectedEmployee ? (
-                    <EmployeeDetails employee={selectedEmployee} onBack={() => setSelectedEmployee(null)} />
-                  ) : (
-                    <EmployeeList onSelectEmployee={handleSelectEmployee} />
-                  )
-                ) : (
-                  <Navigate to="/admin-login" />
-                )
-              }
-            />
-            <Route
-              path="/hr-management/customer-list"
-              element={isAdminAuthenticated ? <CustomerList /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/customer-details/:id"
-              element={isAdminAuthenticated ? <CustomerDetails /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/remuneration"
-              element={isAdminAuthenticated ? <Remuneration /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/remuneration/:employeeId"
-              element={isAdminAuthenticated ? <MySalaryDetails /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/performance"
-              element={isAdminAuthenticated ? <Performance /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/finance"
-              element={isAdminAuthenticated ? <Finance /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/trainings"
-              element={isAdminAuthenticated ? <Trainings /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/hr-actions"
-              element={isAdminAuthenticated ? <HRActions /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/leave-attendance"
-              element={isAdminAuthenticated ? <LeaveAttendance /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/separation"
-              element={isAdminAuthenticated ? <Separation /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/documents"
-              element={isAdminAuthenticated ? <Documents /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/hr-management/messenger"
-              element={isAdminAuthenticated ? <Messenger /> : <Navigate to="/admin-login" />}
-            />
-            <Route
-              path="/customer-registration"
-              element={isAdminAuthenticated ? <CustomerList /> : <Navigate to="/admin-login" />}
-            />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
+            
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />} />
+            <Route path="/customer-registration-form" element={isAuthenticated ? <CustomerAccountForm /> : <Navigate to="/" />} />
+            
+            {/* HR Management Routes (Admin Only) */}
+            <Route path="/hr-management" element={isAdminAuthenticated ? <HRManagementDashboard /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/create-employee" element={isAdminAuthenticated ? <EmployeeForm /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/employee-list" element={isAdminAuthenticated ? <EmployeeList onSelectEmployee={handleSelectEmployee} /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/employee-details/:id" element={isAdminAuthenticated ? <EmployeeDetails /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/customer-list" element={isAdminAuthenticated ? <CustomerList /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/customer-details/:id" element={isAdminAuthenticated ? <CustomerDetails /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/remuneration" element={isAdminAuthenticated ? <Remuneration /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/remuneration/:employeeId" element={isAdminAuthenticated ? <MySalaryDetails /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/performance" element={isAdminAuthenticated ? <Performance /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/finance" element={isAdminAuthenticated ? <Finance /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/trainings" element={isAdminAuthenticated ? <Trainings /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/hr-actions" element={isAdminAuthenticated ? <HRActions /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/leave-attendance" element={isAdminAuthenticated ? <LeaveAttendance /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/separation" element={isAdminAuthenticated ? <Separation /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/documents" element={isAdminAuthenticated ? <Documents /> : <Navigate to="/admin-login" />} />
+            <Route path="/hr-management/messenger" element={isAdminAuthenticated ? <Messenger /> : <Navigate to="/admin-login" />} />
           </Routes>
         </div>
       </div>
@@ -209,12 +130,10 @@ const AppContent = () => {
   );
 };
 
-const App = () => {
-  return (
-    <Router>
-      <AppContent />
-    </Router>
-  );
-};
+const App = () => (
+  <Router>
+    <AppContent />
+  </Router>
+);
 
 export default App;
