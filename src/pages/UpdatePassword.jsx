@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,19 @@ const UpdatePassword = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [accessToken, setAccessToken] = useState("");
+
+  // 🔹 Extract the token from the URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.replace("#", "?"));
+    const token = params.get("access_token");
+
+    if (!token) {
+      setError("Invalid or expired reset link. Please request a new one.");
+    } else {
+      setAccessToken(token);
+    }
+  }, []);
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
@@ -16,15 +29,32 @@ const UpdatePassword = () => {
     setMessage("");
     setLoading(true);
 
+    if (!accessToken) {
+      setError("Missing or invalid access token.");
+      setLoading(false);
+      return;
+    }
+
     try {
+      // 🔹 Authenticate user with the token before updating password
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: accessToken, // Supabase requires refresh_token as well, use access_token as a workaround
+      });
+
+      if (sessionError) {
+        throw new Error(sessionError.message);
+      }
+
+      // 🔹 Now update the password
       const { error } = await supabase.auth.updateUser({ password });
 
       if (error) {
         throw new Error(error.message);
       }
 
-      setMessage("Password updated successfully. You can now log in.");
-      setTimeout(() => navigate("/"), 3000); // Redirect to login after success
+      setMessage("Password updated successfully. Redirecting to login...");
+      setTimeout(() => navigate("/"), 3000); // Redirect to login
     } catch (err) {
       setError(err.message || "Failed to update password.");
     } finally {
@@ -50,11 +80,11 @@ const UpdatePassword = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={loading}
+                disabled={loading || !accessToken} // Disable if no valid token
               />
             </Form.Group>
 
-            <Button type="submit" className="login-button w-100" disabled={loading}>
+            <Button type="submit" className="login-button w-100" disabled={loading || !accessToken}>
               {loading ? "Updating..." : "Update Password"}
             </Button>
           </Form>

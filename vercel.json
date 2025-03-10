@@ -1,0 +1,6 @@
+{
+    "rewrites": [
+      { "source": "/update-password", "destination": "/index.html" }
+    ]
+  }
+  
