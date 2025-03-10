@@ -14,39 +14,73 @@ import {
   FaComments,
   FaArrowLeft,
   FaUserFriends,
+  FaBars, // Added hamburger icon
 } from 'react-icons/fa';
 import { Collapse } from 'react-bootstrap';
 
-// Custom CSS for compact styling
+// Updated CSS with mobile responsive styles
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
   .sidebar {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    border: 3px solid #28a745; /* Slightly thinner border */
-    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.1), -6px -6px 12px rgba(255, 255, 255, 0.5); /* Reduced shadow */
+    border: 3px solid #28a745;
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.1), -6px -6px 12px rgba(255, 255, 255, 0.5);
     position: sticky;
-    top: 15px; /* Reduced offset */
-    margin: 15px 5px; /* Reduced margin */
-    border-radius: 10px; /* Slightly smaller corners */
+    top: 15px;
+    margin: 15px 5px;
+    border-radius: 10px;
     transition: all 0.3s ease;
-    width: 0px; /* Slightly narrower width */
-    max-height: calc(100vh - 30px); /* Adjusted for reduced margins */
-    overflow-y: auto; /* Enable vertical scrolling */
+    width: 220px;
+    max-height: calc(100vh - 30px);
+    overflow-y: auto;
   }
 
   .sidebar:hover {
     box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.15), -8px -8px 16px rgba(255, 255, 255, 0.7);
   }
 
+  .hamburger-menu {
+    display: none;
+    font-size: 1.5rem;
+    color: #28a745;
+    cursor: pointer;
+    padding: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .hamburger-menu {
+      display: block;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: -260px;
+      width: 250px;
+      height: 100%;
+      margin: 0;
+      z-index: 1000;
+      transition: left 0.3s ease;
+    }
+
+    .sidebar.open {
+      left: 0;
+    }
+
+    .sidebar-header {
+      padding: 1rem;
+    }
+  }
+
+  /* Rest of your existing styles remain unchanged */
   .sidebar-header {
     color: #1f2937;
     font-weight: 700;
-    font-size: 1.25rem; /* Smaller font size */
-    letter-spacing: 0.5px; /* Reduced spacing */
+    font-size: 1.25rem;
+    letter-spacing: 0.5px;
     border-bottom: 1px solid #e5e7eb;
-    padding: 0.75rem; /* Reduced padding */
+    padding: 0.75rem;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -54,20 +88,20 @@ const customStyles = `
 
   .sidebar-nav-item {
     transition: background-color 0.3s ease, transform 0.3s ease;
-    border-radius: 6px; /* Smaller radius */
-    margin: 2px 0; /* Reduced margin */
-    padding: 0.25rem; /* Reduced padding */
+    border-radius: 6px;
+    margin: 2px 0;
+    padding: 0.25rem;
   }
 
   .sidebar-nav-item:hover {
     background-color: #f1f5f9;
-    transform: translateX(3px); /* Reduced transform */
+    transform: translateX(3px);
   }
 
   .sidebar-nav-link {
     font-weight: 600;
-    font-size: 0.9rem; /* Smaller font size */
-    padding: 8px 12px; /* Reduced padding */
+    font-size: 0.9rem;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
     text-decoration: none;
@@ -76,20 +110,20 @@ const customStyles = `
 
   .sidebar-sub-item {
     transition: background-color 0.3s ease, transform 0.3s ease;
-    border-radius: 4px; /* Smaller radius */
-    margin: 2px 0; /* Reduced margin */
-    padding: 0.25rem; /* Reduced padding */
+    border-radius: 4px;
+    margin: 2px 0;
+    padding: 0.25rem;
   }
 
   .sidebar-sub-item:hover {
     background-color: #e6f0fa;
-    transform: translateX(2px); /* Reduced transform */
+    transform: translateX(2px);
   }
 
   .sidebar-sub-link {
     font-weight: 500;
-    font-size: 0.85rem; /* Smaller font size */
-    padding: 6px 12px; /* Reduced padding */
+    font-size: 0.85rem;
+    padding: 6px 12px;
     display: flex;
     align-items: center;
     text-decoration: none;
@@ -98,31 +132,30 @@ const customStyles = `
 
   .sidebar-icon {
     transition: transform 0.3s ease;
-    margin-right: 8px; /* Reduced spacing */
-    font-size: 1rem; /* Smaller icon */
+    margin-right: 8px;
+    font-size: 1rem;
   }
 
   .sidebar-nav-item:hover .sidebar-icon,
   .sidebar-sub-item:hover .sidebar-icon {
-    transform: scale(1.1); /* Reduced scale */
+    transform: scale(1.1);
   }
 
   .back-arrow {
     color: #28a745;
     cursor: pointer;
     transition: transform 0.3s ease;
-    margin-left: 8px; /* Reduced margin */
+    margin-left: 8px;
     margin-right: 8px;
-    font-size: 1rem; /* Smaller icon */
+    font-size: 1rem;
   }
 
   .back-arrow:hover {
-    transform: scale(1.1); /* Reduced scale */
+    transform: scale(1.1);
   }
 
-  /* Scrollbar styling */
   .sidebar::-webkit-scrollbar {
-    width: 6px; /* Thinner scrollbar */
+    width: 6px;
   }
 
   .sidebar::-webkit-scrollbar-track {
@@ -142,53 +175,56 @@ const customStyles = `
 
 const SidebarComponent = () => {
   const [employeeMenuOpen, setEmployeeMenuOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Added state for mobile sidebar
   const location = useLocation();
 
-  // Style for active NavLink (parent menu)
   const activeParentStyle = {
     backgroundColor: '#28a745',
     color: '#fff',
-    borderRadius: '6px', // Match reduced radius
+    borderRadius: '6px',
   };
 
-  // Style for inactive NavLink (parent menu)
   const inactiveParentStyle = {
     color: '#4b5563',
   };
 
-  // Style for active sub-item (with dotted underline)
   const activeSubItemStyle = {
     color: '#28a745',
-    borderBottom: '1px dotted #28a745', // Thinner dotted line
+    borderBottom: '1px dotted #28a745',
     paddingBottom: '1px',
   };
 
-  // Style for inactive sub-item
   const inactiveSubItemStyle = {
     color: '#6c757d',
   };
 
-  // Green color for icons
   const iconStyle = {
     color: '#28a745',
   };
 
+  // Toggle sidebar on mobile
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <>
-      {/* Inject custom CSS */}
       <style>{customStyles}</style>
 
+      {/* Hamburger menu for mobile */}
+      <div className="hamburger-menu" onClick={toggleSidebar}>
+        <FaBars />
+      </div>
+
       <div
-        className="sidebar p-2" // Reduced padding
+        className={`sidebar p-2 ${sidebarOpen ? 'open' : ''}`}
         style={{
-          minHeight: 'calc(100vh - 30px)', // Adjusted for reduced margins
-          width: '220px', // Match reduced width
+          minHeight: 'calc(100vh - 30px)',
+          width: '220px',
         }}
       >
         <h4 className="sidebar-header mb-3">
-          <NavLink to="/dashboard" className="back-arrow">
-            <FaArrowLeft />
-          </NavLink>
+          
           HR Portal
         </h4>
         <ul className="nav flex-column">
@@ -197,12 +233,12 @@ const SidebarComponent = () => {
               to="/dashboard"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)} // Close sidebar on click in mobile
             >
               <FaHome className="sidebar-icon" style={iconStyle} />
               Dashboard
             </NavLink>
           </li>
-          {/* Employee Menu with Submenu */}
           <li className="sidebar-nav-item mb-1">
             <div
               className="sidebar-nav-link d-flex align-items-center"
@@ -226,6 +262,7 @@ const SidebarComponent = () => {
                     style={({ isActive }) =>
                       isActive ? activeSubItemStyle : inactiveSubItemStyle
                     }
+                    onClick={() => setSidebarOpen(false)}
                   >
                     Staff
                   </NavLink>
@@ -237,6 +274,7 @@ const SidebarComponent = () => {
                     style={({ isActive }) =>
                       isActive ? activeSubItemStyle : inactiveSubItemStyle
                     }
+                    onClick={() => setSidebarOpen(false)}
                   >
                     Create Employee
                   </NavLink>
@@ -244,12 +282,12 @@ const SidebarComponent = () => {
               </ul>
             </Collapse>
           </li>
-          {/* Added Customer List */}
           <li className="sidebar-nav-item mb-1">
             <NavLink
               to="/hr-management/customer-list"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaUserFriends className="sidebar-icon" style={iconStyle} />
               Customer List
@@ -260,6 +298,7 @@ const SidebarComponent = () => {
               to="/hr-management/remuneration"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaMoneyBillWave className="sidebar-icon" style={iconStyle} />
               Salary & Remuneration
@@ -270,6 +309,7 @@ const SidebarComponent = () => {
               to="/hr-management/leave-attendance"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaCalendarAlt className="sidebar-icon" style={iconStyle} />
               Leave & Attendance
@@ -280,6 +320,7 @@ const SidebarComponent = () => {
               to="/hr-management/performance"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaChartBar className="sidebar-icon" style={iconStyle} />
               Performance
@@ -290,6 +331,7 @@ const SidebarComponent = () => {
               to="/hr-management/finance"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaMoneyCheckAlt className="sidebar-icon" style={iconStyle} />
               Finance
@@ -300,6 +342,7 @@ const SidebarComponent = () => {
               to="/hr-management/trainings"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaGraduationCap className="sidebar-icon" style={iconStyle} />
               Trainings
@@ -310,6 +353,7 @@ const SidebarComponent = () => {
               to="/hr-management/hr-actions"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaUserCog className="sidebar-icon" style={iconStyle} />
               HR Actions
@@ -320,6 +364,7 @@ const SidebarComponent = () => {
               to="/hr-management/separation"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaSignOutAlt className="sidebar-icon" style={iconStyle} />
               Separation
@@ -330,6 +375,7 @@ const SidebarComponent = () => {
               to="/hr-management/documents"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaFileAlt className="sidebar-icon" style={iconStyle} />
               Documents
@@ -340,6 +386,7 @@ const SidebarComponent = () => {
               to="/hr-management/messenger"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaComments className="sidebar-icon" style={iconStyle} />
               Messenger
@@ -350,6 +397,7 @@ const SidebarComponent = () => {
               to="/customer-registration"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaUsers className="sidebar-icon" style={iconStyle} />
               Customer Registration
@@ -360,6 +408,7 @@ const SidebarComponent = () => {
               to="/"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
+              onClick={() => setSidebarOpen(false)}
             >
               <FaSignOutAlt className="sidebar-icon" style={iconStyle} />
               Logout
