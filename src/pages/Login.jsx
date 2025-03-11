@@ -21,6 +21,7 @@ const customStyles = `
     margin: 0;
     width: 100vw;
     overflow: hidden;
+    flex-direction: column;
   }
 
   .login-card {
@@ -78,6 +79,13 @@ const customStyles = `
 
   .signup-link:hover, .forgot-password-link:hover {
     text-decoration: underline;
+  }
+
+  .footer-text {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-align: center;
   }
 `;
 
@@ -183,6 +191,9 @@ const Login = ({ onLogin }) => {
             </div>
           </Card.Body>
         </Card>
+
+        {/* Made with love statement */}
+        <p className="footer-text">Made with ❤️ by Abdikhafar</p>
       </div>
     </>
   );
