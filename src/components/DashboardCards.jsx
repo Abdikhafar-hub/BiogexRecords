@@ -89,35 +89,41 @@ const customStyles = `
   /* Mobile responsiveness */
   @media (max-width: 768px) {
     .dashboard-card {
-      padding: 1rem; /* Reduce padding on smaller screens */
+      padding: 0.75rem; /* Reduced padding */
       margin-bottom: 1rem;
+      width: 90%; /* Ensure card fits within screen */
+      margin-left: auto;
+      margin-right: auto;
     }
     
     .dashboard-card-title {
-      font-size: 1.25rem; /* Slightly smaller title */
+      font-size: 0.9rem; /* Further reduced title size */
       flex-direction: column; /* Stack icon and text vertically */
       text-align: center;
     }
     
     .dashboard-card-icon {
-      font-size: 1.5rem; /* Slightly smaller icon */
-      margin-bottom: 0.5rem; /* Space between icon and text */
+      font-size: 1.1rem; /* Further reduced icon size */
+      margin-bottom: 0.25rem; /* Less space between icon and text */
     }
     
     .dashboard-card-text {
-      font-size: 0.9rem; /* Slightly smaller text */
-      margin-bottom: 1rem;
+      font-size: 0.8rem; /* Further reduced text size */
+      margin-bottom: 0.75rem; /* Reduced margin */
+      line-height: 1.3; /* Tighter line spacing */
     }
     
     .dashboard-card-button {
-      font-size: 0.9rem; /* Slightly smaller button text */
-      padding: 0.6rem 1.2rem; /* Adjust button padding */
+      font-size: 0.8rem; /* Further reduced button text */
+      padding: 0.4rem 0.8rem; /* Reduced padding */
+      width: 100%; /* Full width for better fit */
     }
     
     .logout-button {
-      font-size: 0.9rem;
-      padding: 0.6rem 1.2rem;
-      width: 100%; /* Full width on mobile */
+      font-size: 0.8rem; /* Further reduced button text */
+      padding: 0.4rem 0.8rem; /* Reduced padding */
+      width: 90%; /* Full width with slight margin */
+      margin: 0 auto; /* Center the button */
     }
     
     .row {
@@ -128,30 +134,43 @@ const customStyles = `
     .col-md-5 {
       width: 100%; /* Full width for columns */
       max-width: 90%; /* Slight margin on sides */
+      margin-bottom: 1rem; /* Space between cards */
     }
   }
 
   @media (max-width: 576px) {
+    .dashboard-card {
+      padding: 0.5rem; /* Further reduced padding */
+      width: 85%; /* Slightly narrower */
+    }
+    
     .dashboard-card-title {
-      font-size: 1.1rem; /* Even smaller title for very small screens */
+      font-size: 0.8rem; /* Further reduced title size */
     }
     
     .dashboard-card-icon {
-      font-size: 1.25rem;
+      font-size: 1rem; /* Further reduced icon size */
     }
     
     .dashboard-card-text {
-      font-size: 0.85rem;
+      font-size: 0.75rem; /* Further reduced text size */
+      margin-bottom: 0.5rem; /* Further reduced margin */
+      line-height: 1.2; /* Even tighter line spacing */
     }
     
     .dashboard-card-button {
-      font-size: 0.85rem;
-      padding: 0.5rem 1rem;
+      font-size: 0.75rem; /* Further reduced button text */
+      padding: 0.3rem 0.6rem; /* Further reduced padding */
     }
     
     .logout-button {
-      font-size: 0.85rem;
-      padding: 0.5rem 1rem;
+      font-size: 0.75rem; /* Further reduced button text */
+      padding: 0.3rem 0.6rem; /* Further reduced padding */
+      width: 85%; /* Slightly narrower */
+    }
+    
+    .col-md-5 {
+      max-width: 85%; /* Further reduced column width */
     }
   }
 `;

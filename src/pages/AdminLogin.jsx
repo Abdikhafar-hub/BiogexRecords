@@ -40,6 +40,8 @@ const customStyles = `
   @media (max-width: 768px) {
     .login-card {
       width: 18rem !important; /* Reduced size for mobile */
+      height: 420px; /* Reduced height for mobile, no scrolling */
+      padding: 1rem; /* Adjusted padding to fit content */
     }
 
     .login-title {
@@ -57,11 +59,21 @@ const customStyles = `
     .btn {
       font-size: 0.9rem; /* Slightly smaller buttons */
     }
+
+    .mb-3 {
+      margin-bottom: 0.75rem !important; /* Adjusted spacing */
+    }
+
+    .mb-4 {
+      margin-bottom: 1rem !important; /* Adjusted spacing */
+    }
   }
 
   @media (max-width: 480px) {
     .login-card {
       width: 16rem !important; /* Even smaller for very small screens */
+      height: 380px; /* Further reduced height, no scrolling */
+      padding: 0.75rem; /* Further adjusted padding */
     }
 
     .login-title {
@@ -70,6 +82,22 @@ const customStyles = `
 
     .login-logo {
       width: 80px;
+    }
+
+    .form-control {
+      font-size: 0.85rem;
+    }
+
+    .btn {
+      font-size: 0.85rem;
+    }
+
+    .mb-3 {
+      margin-bottom: 0.5rem !important;
+    }
+
+    .mb-4 {
+      margin-bottom: 0.75rem !important;
     }
   }
 `;
@@ -149,7 +177,7 @@ const AdminLogin = ({ onAdminLogin }) => {
               <Button
                 variant="outline-secondary"
                 onClick={handleBackToDashboard}
-                className="w-100 d-flex align-items-center justify-content-center"
+                className="w-100 d-flex align-items-center justify-content-center mb-3"
               >
                 <FaArrowLeft className="mr-2" />
                 Back to Dashboard

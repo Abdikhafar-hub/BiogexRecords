@@ -12,7 +12,7 @@ const customStyles = `
 
   .login-container {
     font-family: 'Poppins', sans-serif;
-    min-height: 100vh;
+    min-height: 100vh; /* Full height for desktop, as original */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -29,6 +29,7 @@ const customStyles = `
     max-width: 22rem;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* No fixed height for desktop, as original */
   }
 
   .login-logo {
@@ -91,24 +92,26 @@ const customStyles = `
   /* Mobile responsive styles */
   @media (max-width: 768px) {
     .login-card {
-      max-width: 18rem; /* Reduced size for tablets/mobile */
+      max-width: 18rem;
+      height: 480px; /* Increased height to accommodate content */
+      overflow-y: auto; /* Allows scrolling if needed */
     }
 
     .login-title {
-      font-size: 1.5rem; /* Smaller title */
+      font-size: 1.5rem;
     }
 
     .login-logo {
-      width: 100px; /* Smaller logo */
+      width: 100px;
     }
 
     .form-control {
-      font-size: 0.9rem; /* Smaller inputs */
+      font-size: 0.9rem;
     }
 
     .login-button {
-      font-size: 0.9rem; /* Smaller button text */
-      padding: 0.65rem 1.25rem; /* Slightly smaller padding */
+      font-size: 0.9rem;
+      padding: 0.65rem 1.25rem;
     }
 
     .error-message {
@@ -122,7 +125,9 @@ const customStyles = `
 
   @media (max-width: 480px) {
     .login-card {
-      max-width: 16rem; /* Even smaller for small mobile */
+      max-width: 16rem;
+      height: 440px; /* Increased height to accommodate content */
+      overflow-y: auto;
     }
 
     .login-title {
