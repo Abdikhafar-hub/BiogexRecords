@@ -87,6 +87,65 @@ const customStyles = `
     color: #6c757d;
     text-align: center;
   }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .login-card {
+      max-width: 18rem; /* Reduced size for tablets/mobile */
+    }
+
+    .login-title {
+      font-size: 1.5rem; /* Smaller title */
+    }
+
+    .login-logo {
+      width: 100px; /* Smaller logo */
+    }
+
+    .form-control {
+      font-size: 0.9rem; /* Smaller inputs */
+    }
+
+    .login-button {
+      font-size: 0.9rem; /* Smaller button text */
+      padding: 0.65rem 1.25rem; /* Slightly smaller padding */
+    }
+
+    .error-message {
+      font-size: 0.85rem;
+    }
+
+    .footer-text {
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .login-card {
+      max-width: 16rem; /* Even smaller for small mobile */
+    }
+
+    .login-title {
+      font-size: 1.25rem;
+    }
+
+    .login-logo {
+      width: 80px;
+    }
+
+    .form-control {
+      font-size: 0.85rem;
+    }
+
+    .login-button {
+      font-size: 0.85rem;
+      padding: 0.6rem 1rem;
+    }
+
+    .footer-text {
+      font-size: 0.8rem;
+    }
+  }
 `;
 
 const Login = ({ onLogin }) => {

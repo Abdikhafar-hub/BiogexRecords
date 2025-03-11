@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS for styling
+// Custom CSS as a styled component
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -133,16 +133,25 @@ const customStyles = `
     border-bottom-right-radius: 16px;
     padding: 1rem;
   }
+
+  .employee-details-error {
+    color: #dc3545;
+    text-align: center;
+    padding: 1rem;
+  }
 `;
 
 const EmployeeDetails = () => {
-  const { id } = useParams(); // Get the employee id from the URL
+  const { id } = useParams();
   const navigate = useNavigate();
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchEmployee = async () => {
       try {
         setLoading(true);
@@ -153,16 +162,28 @@ const EmployeeDetails = () => {
           .single();
 
         if (error) throw error;
-        setEmployee(data);
+        if (isMounted) {
+          console.log('Fetched employee:', data);
+          console.log('Profile pic URL:', data.profile_pic_url);
+          setEmployee(data);
+        }
       } catch (err) {
-        setError('Failed to fetch employee details: ' + err.message);
-        console.error(err);
+        if (isMounted) {
+          setError('Failed to fetch employee details: ' + err.message);
+          console.error(err);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchEmployee();
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   const handleDelete = async () => {
@@ -200,97 +221,109 @@ const EmployeeDetails = () => {
             <div className="employee-details-section">
               <div className="row">
                 <div className="col-md-4 text-center">
-                  {employee.profile_pic_url ? (
+                  {!imageError && employee.profile_pic_url ? (
                     <img
                       src={employee.profile_pic_url}
                       alt="Profile"
                       className="employee-details-image"
+                      onError={(e) => {
+                        console.log('Primary image failed to load, URL:', employee.profile_pic_url);
+                        setImageError(true);
+                      }}
                     />
                   ) : (
-                    <p>No profile picture available.</p>
+                    <img
+                      src="/default-profile.png"
+                      alt="Default Profile"
+                      className="employee-details-image"
+                      onError={(e) => {
+                        console.log('Fallback image failed to load, URL:', e.target.src);
+                        e.target.style.display = 'none';
+                      }}
+                    />
                   )}
                 </div>
                 <div className="col-md-8">
                   <h3 className="employee-details-section-title">Personal Information</h3>
                   <div>
                     <span className="employee-details-label">Full Name:</span>
-                    <span className="employee-details-value">{employee.full_name}</span>
+                    <span className="employee-details-value">{employee.full_name || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Date of Birth:</span>
-                    <span className="employee-details-value">{employee.date_of_birth}</span>
+                    <span className="employee-details-value">{employee.date_of_birth || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">National ID/Passport:</span>
-                    <span className="employee-details-value">{employee.national_id}</span>
+                    <span className="employee-details-value">{employee.national_id || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Tax ID (TIN/KRA PIN):</span>
-                    <span className="employee-details-value">{employee.tax_id}</span>
+                    <span className="employee-details-value">{employee.tax_id || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Social Security (NSSF/SSN):</span>
-                    <span className="employee-details-value">{employee.social_security}</span>
+                    <span className="employee-details-value">{employee.social_security || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Nationality:</span>
-                    <span className="employee-details-value">{employee.nationality}</span>
+                    <span className="employee-details-value">{employee.nationality || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Gender:</span>
-                    <span className="employee-details-value">{employee.gender}</span>
+                    <span className="employee-details-value">{employee.gender || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Marital Status:</span>
-                    <span className="employee-details-value">{employee.marital_status}</span>
+                    <span className="employee-details-value">{employee.marital_status || 'N/A'}</span>
                   </div>
 
                   <h3 className="employee-details-section-title">Contact Information</h3>
                   <div>
                     <span className="employee-details-label">Permanent Address:</span>
-                    <span className="employee-details-value">{employee.permanent_address}</span>
+                    <span className="employee-details-value">{employee.permanent_address || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Current Address:</span>
-                    <span className="employee-details-value">{employee.current_address}</span>
+                    <span className="employee-details-value">{employee.current_address || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Phone Number:</span>
-                    <span className="employee-details-value">{employee.phone_number}</span>
+                    <span className="employee-details-value">{employee.phone_number || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Email Address:</span>
-                    <span className="employee-details-value">{employee.email}</span>
+                    <span className="employee-details-value">{employee.email || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Emergency Contact:</span>
-                    <span className="employee-details-value">{employee.emergency_contact}</span>
+                    <span className="employee-details-value">{employee.emergency_contact || 'N/A'}</span>
                   </div>
 
                   <h3 className="employee-details-section-title">Employment Details</h3>
                   <div>
                     <span className="employee-details-label">Position/Job Title:</span>
-                    <span className="employee-details-value">{employee.position}</span>
+                    <span className="employee-details-value">{employee.position || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Department/Division:</span>
-                    <span className="employee-details-value">{employee.department}</span>
+                    <span className="employee-details-value">{employee.department || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Employment Type:</span>
-                    <span className="employee-details-value">{employee.employment_type}</span>
+                    <span className="employee-details-value">{employee.employment_type || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Start Date:</span>
-                    <span className="employee-details-value">{employee.start_date}</span>
+                    <span className="employee-details-value">{employee.start_date || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Work Location/Branch:</span>
-                    <span className="employee-details-value">{employee.work_location}</span>
+                    <span className="employee-details-value">{employee.work_location || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Reporting Manager:</span>
-                    <span className="employee-details-value">{employee.reporting_manager}</span>
+                    <span className="employee-details-value">{employee.reporting_manager || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Probation Period:</span>
@@ -298,25 +331,25 @@ const EmployeeDetails = () => {
                   </div>
                   <div>
                     <span className="employee-details-label">Job Description:</span>
-                    <span className="employee-details-value">{employee.job_description}</span>
+                    <span className="employee-details-value">{employee.job_description || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Employee Code/ID:</span>
-                    <span className="employee-details-value">{employee.employee_code}</span>
+                    <span className="employee-details-value">{employee.employee_code || 'N/A'}</span>
                   </div>
 
                   <h3 className="employee-details-section-title">Compensation Details</h3>
                   <div>
                     <span className="employee-details-label">Gross Basic Salary:</span>
-                    <span className="employee-details-value">{employee.gross_salary}</span>
+                    <span className="employee-details-value">{employee.gross_salary || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Payment Method:</span>
-                    <span className="employee-details-value">{employee.payment_method}</span>
+                    <span className="employee-details-value">{employee.payment_method || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Bank Details:</span>
-                    <span className="employee-details-value">{employee.bank_details}</span>
+                    <span className="employee-details-value">{employee.bank_details || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Allowances:</span>
@@ -332,7 +365,7 @@ const EmployeeDetails = () => {
                   </div>
                   <div>
                     <span className="employee-details-label">Leave Entitlements:</span>
-                    <span className="employee-details-value">{employee.leave_entitlements}</span>
+                    <span className="employee-details-value">{employee.leave_entitlements || 'N/A'}</span>
                   </div>
 
                   <h3 className="employee-details-section-title">Benefits & Insurance</h3>
@@ -370,7 +403,7 @@ const EmployeeDetails = () => {
                   <h3 className="employee-details-section-title">Declaration</h3>
                   <div>
                     <span className="employee-details-label">Declared By:</span>
-                    <span className="employee-details-value">{employee.declaration_name}</span>
+                    <span className="employee-details-value">{employee.declaration_name || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="employee-details-label">Signature:</span>
@@ -378,25 +411,15 @@ const EmployeeDetails = () => {
                   </div>
                   <div>
                     <span className="employee-details-label">Date:</span>
-                    <span className="employee-details-value">{employee.declaration_date}</span>
+                    <span className="employee-details-value">{employee.declaration_date || 'N/A'}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
           <div className="footer-btn-container">
-            <Link
-              to="/hr-management/employee-list"
-              className="back-btn"
-            >
-              Back to List
-            </Link>
-            <button
-              className="delete-btn"
-              onClick={handleDelete}
-            >
-              Delete Employee
-            </button>
+            <Link to="/hr-management/employee-list" className="back-btn">Back to List</Link>
+            <button className="delete-btn" onClick={handleDelete}>Delete Employee</button>
           </div>
         </div>
       </div>

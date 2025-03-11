@@ -35,6 +35,43 @@ const customStyles = `
     font-size: 0.9rem;
     margin-top: 0.5rem;
   }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .login-card {
+      width: 18rem !important; /* Reduced size for mobile */
+    }
+
+    .login-title {
+      font-size: 1.5rem; /* Slightly smaller title */
+    }
+
+    .login-logo {
+      width: 100px; /* Slightly smaller logo */
+    }
+
+    .form-control {
+      font-size: 0.9rem; /* Slightly smaller inputs */
+    }
+
+    .btn {
+      font-size: 0.9rem; /* Slightly smaller buttons */
+    }
+  }
+
+  @media (max-width: 480px) {
+    .login-card {
+      width: 16rem !important; /* Even smaller for very small screens */
+    }
+
+    .login-title {
+      font-size: 1.25rem;
+    }
+
+    .login-logo {
+      width: 80px;
+    }
+  }
 `;
 
 const AdminLogin = ({ onAdminLogin }) => {
@@ -62,7 +99,6 @@ const AdminLogin = ({ onAdminLogin }) => {
         return;
       }
 
-      // Successful login, trigger admin state and navigate to employee list
       onAdminLogin();
       navigate('/hr-management/employee-list');
     } catch (err) {
@@ -79,7 +115,7 @@ const AdminLogin = ({ onAdminLogin }) => {
     <>
       <style>{customStyles}</style>
       <Container className="d-flex justify-content-center align-items-center vh-100">
-        <Card style={{ width: '22rem' }} className="shadow">
+        <Card style={{ width: '22rem' }} className="shadow login-card">
           <Card.Body>
             <div className="text-center mb-3">
               <img src={BiogexLogo} alt="Biogex Pharma Logo" className="login-logo" />

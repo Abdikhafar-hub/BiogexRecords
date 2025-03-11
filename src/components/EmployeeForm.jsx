@@ -206,7 +206,7 @@ const customStyles = `
   }
 `;
 
-const EmployeeForm = ({ onSubmit }) => {
+const EmployeeForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -413,7 +413,7 @@ const EmployeeForm = ({ onSubmit }) => {
         allowances: formData.allowances || '0',
         overtime_bonus: formData.overtimeBonus || '0',
         payment_method: formData.paymentMethod,
-        bank_details: formData.bankDetails, // Added bank_details field
+        bank_details: formData.bankDetails,
         created_at: new Date().toISOString(),
       };
 
@@ -424,9 +424,6 @@ const EmployeeForm = ({ onSubmit }) => {
       if (remunerationError) {
         throw new Error('Failed to create remuneration record: ' + remunerationError.message);
       }
-
-      // Call the onSubmit prop to notify parent component
-      onSubmit({ ...employeeData, id: newEmployeeId, profilePic: files.profilePic });
 
       // Reset form
       setFormData({
