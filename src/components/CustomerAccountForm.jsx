@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS
+// Custom CSS with Mobile Responsiveness
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -194,8 +194,110 @@ const customStyles = `
     box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
   }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 767px) {
+    .form-container {
+      padding: 1rem 0.5rem;
+      margin-top: 20px;
+    }
+
+    .form-card {
+      border-radius: 10px;
+      box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5);
+    }
+
+    .form-header {
+      padding: 1rem;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+
+    .form-header-title {
+      font-size: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+
+    .form-header-subtitle {
+      font-size: 1rem;
+      letter-spacing: 0.3px;
+    }
+
+    .form-instruction {
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 1rem;
+      border-radius: 6px;
+    }
+
+    .form-error, .form-success {
+      font-size: 0.8rem;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 1rem;
+      border-radius: 6px;
+    }
+
+    .form-body {
+      padding: 1rem;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+
+    .form-section-title {
+      font-size: 1.2rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.3rem;
+    }
+
+    .form-section-title::after {
+      width: 30px;
+      height: 2px;
+    }
+
+    .form-subsection-title {
+      font-size: 0.95rem;
+      margin-top: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .form-label {
+      font-size: 0.9rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .form-control, .form-select {
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-footer {
+      padding: 0.75rem;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+
+    .form-button {
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+    }
+
+    /* Reduce spacing for form elements */
+    .mb-3 {
+      margin-bottom: 0.75rem !important;
+    }
+
+    /* Stack buttons vertically */
+    .form-footer {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
 `;
 
+// The React component remains largely unchanged, only the CSS is adjusted
 const CustomerAccountForm = () => {
   const navigate = useNavigate();
   const [files, setFiles] = useState({});
@@ -254,7 +356,6 @@ const CustomerAccountForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
     const requiredFields = [
       'fullName',
       'businessName',
@@ -285,7 +386,6 @@ const CustomerAccountForm = () => {
     setSuccess('');
 
     try {
-      // Prepare customer data for insertion
       const customerData = {
         full_name: formData.fullName,
         business_name: formData.businessName,
@@ -327,7 +427,6 @@ const CustomerAccountForm = () => {
         created_at: new Date().toISOString(),
       };
 
-      // Insert customer data into Supabase
       const { data, error: insertError } = await supabase
         .from('customers')
         .insert([customerData])
@@ -337,7 +436,6 @@ const CustomerAccountForm = () => {
         throw new Error('Failed to register customer: ' + insertError.message);
       }
 
-      // Reset form
       setFormData({
         fullName: '',
         businessName: '',
@@ -380,7 +478,6 @@ const CustomerAccountForm = () => {
       setFiles({});
       setSuccess('Customer registered successfully!');
 
-      // Navigate to CustomerList after a short delay
       setTimeout(() => {
         navigate('/hr-management/customer-list');
       }, 1500);
@@ -414,7 +511,6 @@ const CustomerAccountForm = () => {
               <h5 className="form-section-title">Section 1: Customer Details</h5>
               <hr style={{ borderColor: '#28a745' }} />
 
-              {/* Subsection: Contact Information */}
               <h6 className="form-subsection-title">1. Contact Information</h6>
               <Row>
                 <Col md={6} className="mb-3">
@@ -516,7 +612,6 @@ const CustomerAccountForm = () => {
                 </Col>
               </Row>
 
-              {/* Subsection: Address Details */}
               <h6 className="form-subsection-title">2. Address Details</h6>
               <Row>
                 <Col md={6} className="mb-3">
@@ -627,7 +722,6 @@ const CustomerAccountForm = () => {
               <h5 className="form-section-title">Section 2: Financial Information</h5>
               <hr style={{ borderColor: '#28a745' }} />
 
-              {/* Subsection: Banking Details */}
               <h6 className="form-subsection-title">1. Banking Details</h6>
               <Row>
                 <Col md={6} className="mb-3">
@@ -689,7 +783,6 @@ const CustomerAccountForm = () => {
                 </Col>
               </Row>
 
-              {/* Subsection: Tax Details */}
               <h6 className="form-subsection-title">2. Tax Details</h6>
               <Row>
                 <Col md={6} className="mb-3">
@@ -715,7 +808,6 @@ const CustomerAccountForm = () => {
                 </Col>
               </Row>
 
-              {/* Subsection: Credit Details */}
               <h6 className="form-subsection-title">3. Credit Details</h6>
               <Row>
                 <Col md={6} className="mb-3">
@@ -748,7 +840,6 @@ const CustomerAccountForm = () => {
               <h5 className="form-section-title">Section 3: Trade References</h5>
               <hr style={{ borderColor: '#28a745' }} />
 
-              {/* Trade Reference 1 */}
               <h6 className="form-subsection-title">Trade Reference 1</h6>
               <Row>
                 <Col md={6} className="mb-3">
@@ -795,7 +886,6 @@ const CustomerAccountForm = () => {
                 </Col>
               </Row>
 
-              {/* Trade Reference 2 */}
               <h6 className="form-subsection-title">Trade Reference 2</h6>
               <Row>
                 <Col md={6} className="mb-3">
@@ -917,7 +1007,6 @@ const CustomerAccountForm = () => {
                 </Col>
               </Row>
 
-              {/* Form Footer */}
               <div className="form-footer text-center d-flex justify-content-center gap-3">
                 <Button type="submit" variant="light" className="form-button submit">
                   Submit Form

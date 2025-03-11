@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS (unchanged from your previous version)
+// Custom CSS with Mobile-Only Adjustments
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -177,31 +177,101 @@ const customStyles = `
     transform: translateY(-2px);
   }
 
+  /* Mobile-Only Adjustments */
   @media (max-width: 768px) {
+    .form-container {
+      padding: 0.5rem;
+    }
+
     .form-card {
       max-width: 100%;
       max-height: calc(100vh - 1rem);
+      border-radius: 10px;
+      box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5);
+    }
+
+    .form-header {
+      padding: 0.75rem;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+
+    .form-header-title {
+      font-size: 1.25rem;
+      letter-spacing: 0.5px;
+    }
+
+    .form-header-subtitle {
+      font-size: 0.8rem;
+      letter-spacing: 0.3px;
+    }
+
+    .form-instruction {
+      font-size: 0.75rem;
+      padding: 0.4rem 0.75rem;
+      margin: 0.3rem 0.75rem;
+      border-radius: 6px;
+    }
+
+    .form-error {
+      font-size: 0.7rem;
+      padding: 0.4rem 0.75rem;
+      margin: 0.3rem 0.75rem;
+      border-radius: 6px;
     }
 
     .form-body {
       padding: 0.75rem;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
     }
 
     .form-section-title {
-      font-size: 1.1rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-section-title::after {
+      width: 30px;
+      height: 2px;
     }
 
     .form-subsection-title {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      margin-bottom: 0.5rem;
     }
 
     .form-label {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
+      margin-bottom: 0.2rem;
     }
 
     .form-control, .form-select {
-      font-size: 0.85rem;
-      padding: 0.4rem;
+      font-size: 0.8rem;
+      padding: 0.35rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-control::placeholder {
+      font-size: 0.75rem;
+    }
+
+    .form-footer {
+      padding: 0.5rem;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+
+    .form-button {
+      font-size: 0.8rem;
+      padding: 0.4rem 0.75rem;
+    }
+
+    .mb-3 {
+      margin-bottom: 0.5rem !important; /* Reduces spacing between form elements */
     }
   }
 `;
@@ -266,7 +336,6 @@ const EmployeeForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
     const requiredFields = [
       'fullName',
       'dateOfBirth',
@@ -305,14 +374,13 @@ const EmployeeForm = () => {
     setError('');
 
     try {
-      // Check if the employeeCode already exists
       const { data: existingEmployee, error: checkError } = await supabase
         .from('employees')
         .select('employee_code')
         .eq('employee_code', formData.employeeCode)
         .single();
 
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows found, which is okay
+      if (checkError && checkError.code !== 'PGRST116') {
         throw new Error('Error checking employee code: ' + checkError.message);
       }
 
@@ -321,7 +389,6 @@ const EmployeeForm = () => {
         return;
       }
 
-      // Upload profile picture to Supabase Storage if provided
       let profilePicUrl = null;
       if (files.profilePic) {
         const file = files.profilePic;
@@ -334,20 +401,17 @@ const EmployeeForm = () => {
           throw new Error('Failed to upload profile picture: ' + uploadError.message);
         }
 
-        // Get the public URL of the uploaded file
         const { data: urlData } = supabase.storage
           .from('biogex-files')
           .getPublicUrl(filePath);
         profilePicUrl = urlData.publicUrl;
       }
 
-      // Get the current authenticated user to associate the employee with their user_id
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) {
         throw new Error('Failed to get authenticated user: ' + (userError?.message || 'User not found'));
       }
 
-      // Prepare employee data for insertion
       const employeeData = {
         user_id: userData.user.id,
         full_name: formData.fullName,
@@ -392,7 +456,6 @@ const EmployeeForm = () => {
         profile_pic_url: profilePicUrl,
       };
 
-      // Insert employee data into Supabase
       const { data: employeeInsertData, error: insertError } = await supabase
         .from('employees')
         .insert([employeeData])
@@ -404,7 +467,6 @@ const EmployeeForm = () => {
 
       const newEmployeeId = employeeInsertData[0].id;
 
-      // Insert initial salary transaction into the remuneration table
       const remunerationData = {
         employee_id: newEmployeeId,
         employee_name: formData.fullName,
@@ -425,7 +487,6 @@ const EmployeeForm = () => {
         throw new Error('Failed to create remuneration record: ' + remunerationError.message);
       }
 
-      // Reset form
       setFormData({
         fullName: '',
         dateOfBirth: '',
@@ -468,8 +529,6 @@ const EmployeeForm = () => {
         declarationDate: '',
       });
       setFiles({});
-
-      // Navigate back to HR Management Dashboard
       navigate('/hr-management');
     } catch (err) {
       setError(err.message);
