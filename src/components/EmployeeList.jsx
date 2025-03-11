@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS for styling
+// Custom CSS for styling with mobile responsiveness
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -9,7 +9,7 @@ const customStyles = `
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
-    padding: 2rem 1rem;
+    width: 100%; /* Full width, no padding */
   }
 
   .employee-list-card {
@@ -19,6 +19,7 @@ const customStyles = `
     border-radius: 20px;
     box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5);
     transition: all 0.3s ease;
+    padding: 0 1rem; /* Move padding here to control internal spacing */
   }
 
   .employee-list-card:hover {
@@ -43,8 +44,12 @@ const customStyles = `
   .employee-list-body {
     padding: 2rem 1.5rem;
     border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
+    border-bottom-right-radius 16px;
     background-color: #f8f9fa;
+  }
+
+  .employee-list-table-wrapper {
+    overflow-x: auto; /* Enable horizontal scrolling on mobile */
   }
 
   .employee-list-table {
@@ -52,6 +57,7 @@ const customStyles = `
     border-collapse: separate;
     border-spacing: 0;
     font-family: 'Poppins', sans-serif;
+    min-width: 600px; /* Reduced from 800px for better mobile fit */
   }
 
   .employee-list-table th {
@@ -87,7 +93,7 @@ const customStyles = `
   .employee-list-table th:last-child,
   .employee-list-table td:last-child {
     border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
+    border-bottom-right-radius 8px;
   }
 
   .employee-list-table .action-btn {
@@ -99,6 +105,7 @@ const customStyles = `
     font-weight: 500;
     transition: background-color 0.3s ease;
     cursor: pointer;
+    white-space: nowrap; /* Prevent button text wrap */
   }
 
   .employee-list-table .action-btn:hover {
@@ -129,6 +136,63 @@ const customStyles = `
   .empty-text {
     color: #6c757d;
   }
+
+  @media (max-width: 768px) {
+    .employee-list-container {
+      padding: 3.5rem 0.5rem 1rem 0.5rem; /* Adjusted for hamburger menu */
+    }
+
+    .employee-list-title {
+      font-size: 1.5rem;
+    }
+
+    .employee-list-header {
+      padding: 1rem;
+    }
+
+    .employee-list-body {
+      padding: 1rem;
+    }
+
+    .employee-list-table th,
+    .employee-list-table td {
+      padding: 0.5rem; /* Reduced padding for compactness */
+      font-size: 0.85rem; /* Smaller font for mobile */
+    }
+
+    .employee-list-table .action-btn {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    .loading-text,
+    .error-text,
+    .empty-text {
+      font-size: 1rem;
+      padding: 1rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .employee-list-title {
+      font-size: 1.25rem;
+    }
+
+    .employee-list-table th,
+    .employee-list-table td {
+      padding: 0.4rem; /* Further reduced padding */
+      font-size: 0.75rem; /* Even smaller font */
+    }
+
+    .employee-list-table .action-btn {
+      padding: 0.2rem 0.4rem;
+      font-size: 0.7rem;
+    }
+
+    .employee-list-table {
+      min-width: 400px; /* Further reduced min-width */
+    }
+  }
 `;
 
 const EmployeeList = ({ onSelectEmployee }) => {
@@ -158,10 +222,8 @@ const EmployeeList = ({ onSelectEmployee }) => {
   };
 
   useEffect(() => {
-    // Initial fetch
     fetchEmployees();
 
-    // Subscribe to real-time updates
     const subscription = supabase
       .channel('employees-channel')
       .on(
@@ -175,7 +237,6 @@ const EmployeeList = ({ onSelectEmployee }) => {
       )
       .subscribe();
 
-    // Cleanup subscription on unmount
     return () => {
       supabase.removeChannel(subscription);
     };
@@ -196,39 +257,41 @@ const EmployeeList = ({ onSelectEmployee }) => {
             {employees.length === 0 ? (
               <p className="empty-text">No employees found.</p>
             ) : (
-              <table className="employee-list-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Phone Number</th>
-                    <th>Position</th>
-                    <th>Department</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.map((employee, index) => (
-                    <tr key={employee.id}>
-                      <td>{index + 1}</td>
-                      <td>{employee.full_name}</td>
-                      <td>{employee.email}</td>
-                      <td>{employee.phone_number}</td>
-                      <td>{employee.position}</td>
-                      <td>{employee.department}</td>
-                      <td>
-                        <button
-                          className="action-btn"
-                          onClick={() => onSelectEmployee(employee)}
-                        >
-                          View Details
-                        </button>
-                      </td>
+              <div className="employee-list-table-wrapper">
+                <table className="employee-list-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Full Name</th>
+                      <th>Email</th>
+                      <th>Phone Number</th>
+                      <th>Position</th>
+                      <th>Department</th>
+                      <th>Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {employees.map((employee, index) => (
+                      <tr key={employee.id}>
+                        <td>{index + 1}</td>
+                        <td>{employee.full_name}</td>
+                        <td>{employee.email}</td>
+                        <td>{employee.phone_number}</td>
+                        <td>{employee.position}</td>
+                        <td>{employee.department}</td>
+                        <td>
+                          <button
+                            className="action-btn"
+                            onClick={() => onSelectEmployee(employee)}
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>

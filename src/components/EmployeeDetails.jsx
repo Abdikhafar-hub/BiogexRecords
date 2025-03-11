@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 // Custom CSS for styling
@@ -135,11 +135,37 @@ const customStyles = `
   }
 `;
 
-const EmployeeDetails = ({ employee, onBack }) => {
+const EmployeeDetails = () => {
+  const { id } = useParams(); // Get the employee id from the URL
   const navigate = useNavigate();
+  const [employee, setEmployee] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('employees')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+        setEmployee(data);
+      } catch (err) {
+        setError('Failed to fetch employee details: ' + err.message);
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployee();
+  }, [id]);
 
   const handleDelete = async () => {
-    // Show confirmation prompt
     const confirmDelete = window.confirm('Are you sure you want to delete this employee?');
     if (!confirmDelete) return;
 
@@ -147,22 +173,20 @@ const EmployeeDetails = ({ employee, onBack }) => {
       const { error } = await supabase
         .from('employees')
         .delete()
-        .eq('id', employee.id);
+        .eq('id', id);
 
-      if (error) {
-        throw new Error('Failed to delete employee: ' + error.message);
-      }
+      if (error) throw error;
 
-      // Navigate back to the employee list after deletion
       navigate('/hr-management/employee-list');
-      onBack(); // Reset selected employee in parent component
     } catch (err) {
       console.error(err.message);
       alert(err.message);
     }
   };
 
-  if (!employee) return <div className="error-text">Employee not found.</div>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="employee-details-error">{error}</div>;
+  if (!employee) return <div className="employee-details-error">Employee not found.</div>;
 
   return (
     <>
@@ -364,7 +388,6 @@ const EmployeeDetails = ({ employee, onBack }) => {
             <Link
               to="/hr-management/employee-list"
               className="back-btn"
-              onClick={onBack}
             >
               Back to List
             </Link>

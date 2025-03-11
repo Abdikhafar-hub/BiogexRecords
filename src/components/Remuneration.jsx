@@ -3,7 +3,7 @@ import { Card, Table, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS for styling the list
+// Custom CSS for compact styling
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -11,60 +11,63 @@ const customStyles = `
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
-    padding: 1rem;
+    padding: 1rem 0.5rem; /* Reduced padding */
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    box-sizing: border-box;
   }
 
   .mysary-card {
     background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
     border: 2px solid transparent;
     border-image: linear-gradient(90deg, #047857 0%, #28a745 100%) 1;
-    border-radius: 20px;
-    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5);
+    border-radius: 15px; /* Slightly smaller radius */
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.08), -6px -6px 12px rgba(255, 255, 255, 0.4); /* Reduced shadow */
     transition: all 0.3s ease;
     width: 100%;
     max-width: 90%;
     max-height: calc(100vh - 2rem);
     display: flex;
     flex-direction: column;
+    overflow-x: auto; /* Horizontal scrolling for table */
   }
 
   .mysary-card:hover {
-    box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.15), -10px -10px 20px rgba(255, 255, 255, 0.7);
+    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.12), -8px -8px 16px rgba(255, 255, 255, 0.6);
   }
 
   .mysary-header {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #fff;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-    padding: 1rem;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 0.75rem; /* Reduced padding */
+    text-align: center;
   }
 
   .mysary-header-title {
-    font-size: 1.75rem;
+    font-size: 1.6rem; /* Smaller title */
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px; /* Reduced spacing */
   }
 
   .mysary-body {
-    padding: 1rem;
+    padding: 0.75rem; /* Reduced padding */
     flex: 1;
     overflow-y: auto;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
   }
 
   .mysary-section-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem; /* Smaller title */
     font-weight: 600;
     color: #047857;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
     position: relative;
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.2rem;
   }
 
   .mysary-section-title::after {
@@ -72,36 +75,56 @@ const customStyles = `
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 40px;
-    height: 3px;
+    width: 30px; /* Reduced width */
+    height: 2px; /* Reduced height */
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     border-radius: 2px;
   }
 
   .mysary-table {
-    border-radius: 8px;
+    border-radius: 6px; /* Smaller radius */
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04); /* Reduced shadow */
+    min-width: 600px; /* Compact width with scrolling */
   }
 
   .mysary-table th {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #fff;
     font-weight: 600;
+    padding: 0.5rem; /* Reduced padding */
+    text-align: left;
+    border-bottom: 2px solid #28a745;
+    font-size: 0.9rem; /* Smaller text */
+    white-space: nowrap; /* Prevents wrapping */
   }
 
   .mysary-table td {
-    color: #4b5563;
+    padding: 0.4rem; /* Reduced padding */
     vertical-align: middle;
+    border-bottom: 1px solid #d1d5db;
+    color: #4b5563;
+    font-size: 0.85rem; /* Smaller text */
+    white-space: nowrap; /* Prevents wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Truncates long text */
+  }
+
+  .mysary-table tr {
+    transition: background-color 0.3s ease;
+  }
+
+  .mysary-table tr:hover {
+    background-color: #f1f5f9;
   }
 
   .mysary-button {
     font-weight: 600;
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
+    font-size: 0.85rem; /* Smaller text */
+    padding: 0.3rem 0.8rem; /* Reduced padding */
+    border-radius: 8px; /* Smaller radius */
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
+    box-shadow: 0 3px 8px rgba(4, 120, 87, 0.2); /* Reduced shadow */
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #fff;
     border: none;
@@ -109,26 +132,52 @@ const customStyles = `
 
   .mysary-button:hover {
     background: linear-gradient(90deg, #28a745 0%, #047857 100%);
-    box-shadow: 0 6px 16px rgba(4, 120, 87, 0.5);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
+    transform: translateY(-1px);
   }
 
   @media (max-width: 768px) {
+    .mysary-container {
+      padding: 0.5rem 0.25rem; /* Further reduced padding */
+    }
+
     .mysary-card {
       max-width: 100%;
       max-height: calc(100vh - 1rem);
     }
 
+    .mysary-header {
+      padding: 0.5rem;
+    }
+
+    .mysary-header-title {
+      font-size: 1.4rem;
+    }
+
     .mysary-body {
-      padding: 0.75rem;
+      padding: 0.5rem;
     }
 
     .mysary-section-title {
-      font-size: 1.1rem;
+      font-size: 1rem;
+      margin-top: 0.75rem;
+      margin-bottom: 0.25rem;
     }
 
-    .mysary-table th, .mysary-table td {
-      font-size: 0.85rem;
+    .mysary-section-title::after {
+      width: 25px;
+      height: 1.5px;
+    }
+
+    .mysary-table th,
+    .mysary-table td {
+      padding: 0.3rem;
+      font-size: 0.8rem;
+    }
+
+    .mysary-button {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
     }
   }
 `;
@@ -148,7 +197,7 @@ const MySaryList = () => {
           .select('*');
         if (error) throw error;
 
-        setEmployees(data);
+        setEmployees(data || []); // Ensure data is an array
       } catch (err) {
         setError('Failed to fetch employees.');
         console.error('Error fetching employees:', err);

@@ -3,6 +3,7 @@ import { Card, Table, Button, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
+// Custom CSS for compact styling
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
@@ -10,47 +11,49 @@ const customStyles = `
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     background: #f9fafb;
-    padding: 2rem 1.5rem;
+    padding: 1rem 0.5rem; /* Reduced padding */
+    box-sizing: border-box;
   }
 
   .leave-card {
     background: #ffffff;
     border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border-radius: 10px; /* Smaller radius */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); /* Reduced shadow */
     transition: all 0.3s ease;
+    overflow-x: auto; /* Horizontal scrolling for tables */
   }
 
   .leave-card:hover {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
   }
 
   .leave-header {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #ffffff;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    padding: 1.5rem;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 0.75rem; /* Reduced padding */
   }
 
   .leave-header-title {
-    font-size: 1.875rem;
+    font-size: 1.6rem; /* Smaller title */
     font-weight: 600;
     letter-spacing: 0.5px;
   }
 
   .leave-body {
-    padding: 1.5rem;
+    padding: 0.75rem; /* Reduced padding */
   }
 
   .leave-section-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem; /* Smaller title */
     font-weight: 600;
     color: #047857;
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
     position: relative;
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.2rem;
   }
 
   .leave-section-title::after {
@@ -58,37 +61,55 @@ const customStyles = `
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 40px;
-    height: 2px;
+    width: 30px; /* Reduced width */
+    height: 1.5px; /* Reduced height */
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     border-radius: 1px;
   }
 
   .leave-table {
-    border-radius: 8px;
+    border-radius: 6px; /* Smaller radius */
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03); /* Reduced shadow */
+    min-width: 600px; /* Compact width with scrolling */
   }
 
   .leave-table th {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #ffffff;
     font-weight: 500;
+    padding: 0.5rem; /* Reduced padding */
     vertical-align: middle;
+    font-size: 0.9rem; /* Smaller text */
+    white-space: nowrap; /* Prevents wrapping */
   }
 
   .leave-table td {
-    color: #374151;
+    padding: 0.4rem; /* Reduced padding */
     vertical-align: middle;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+    font-size: 0.85rem; /* Smaller text */
+    white-space: nowrap; /* Prevents wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Truncates long text */
+  }
+
+  .leave-table tr {
+    transition: background-color 0.3s ease;
+  }
+
+  .leave-table tr:hover {
+    background-color: #f3f4f6;
   }
 
   .leave-button {
     font-weight: 500;
-    font-size: 0.875rem;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    font-size: 0.85rem; /* Smaller text */
+    padding: 0.3rem 0.8rem; /* Reduced padding */
+    border-radius: 6px; /* Smaller radius */
     transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); /* Reduced shadow */
   }
 
   .leave-button.primary {
@@ -99,7 +120,7 @@ const customStyles = `
 
   .leave-button.primary:hover {
     background: linear-gradient(90deg, #28a745 0%, #047857 100%);
-    box-shadow: 0 4px 6px rgba(4, 120, 87, 0.1);
+    box-shadow: 0 2px 4px rgba(4, 120, 87, 0.08);
     transform: translateY(-1px);
   }
 
@@ -111,7 +132,7 @@ const customStyles = `
 
   .leave-button.secondary:hover {
     background: #f3f4f6;
-    box-shadow: 0 4px 6px rgba(4, 120, 87, 0.05);
+    box-shadow: 0 2px 4px rgba(4, 120, 87, 0.04);
     transform: translateY(-1px);
   }
 
@@ -123,27 +144,28 @@ const customStyles = `
 
   .leave-button.danger:hover {
     background: #c82333;
-    box-shadow: 0 4px 6px rgba(220, 53, 69, 0.1);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.08);
     transform: translateY(-1px);
   }
 
   .leave-filter {
     font-weight: 500;
     color: #1f2937;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem; /* Reduced margin */
   }
 
   .leave-filter select {
     border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 0.5rem;
+    border-radius: 6px; /* Smaller radius */
+    padding: 0.3rem 0.5rem; /* Reduced padding */
+    font-size: 0.85rem; /* Smaller text */
     transition: all 0.3s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
 
   .leave-filter select:focus {
     border-color: #047857;
-    box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.2);
+    box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.15);
     outline: none;
   }
 
@@ -152,20 +174,21 @@ const customStyles = `
     color: #ffffff;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
+    padding: 0.75rem; /* Reduced padding */
   }
 
   .leave-modal-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem; /* Smaller title */
     font-weight: 600;
   }
 
   .leave-modal-body {
-    padding: 1.5rem;
+    padding: 0.75rem; /* Reduced padding */
   }
 
   .leave-modal-footer {
     border-top: none;
-    padding: 1rem;
+    padding: 0.5rem; /* Reduced padding */
     justify-content: flex-end;
   }
 
@@ -173,23 +196,105 @@ const customStyles = `
     color: #dc2626;
     font-size: 0.875rem;
     font-weight: 500;
-    margin: 1rem 0;
-    padding: 0.75rem;
+    margin: 0.5rem 0; /* Reduced margin */
+    padding: 0.5rem; /* Reduced padding */
     background: #fee2e2;
-    border-left: 4px solid #dc2626;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-left: 3px solid #dc2626; /* Reduced border */
+    border-radius: 6px; /* Smaller radius */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03); /* Reduced shadow */
   }
 
   .no-records {
     text-align: center;
     color: #6b7280;
-    padding: 1rem;
+    padding: 0.75rem; /* Reduced padding */
+    font-size: 0.9rem; /* Smaller text */
   }
 
   .countdown {
     font-weight: 500;
     color: #dc3545;
+    font-size: 0.85rem; /* Smaller text */
+  }
+
+  @media (max-width: 768px) {
+    .leave-container {
+      padding: 0.5rem 0.25rem; /* Further reduced padding */
+    }
+
+    .leave-header {
+      padding: 0.5rem;
+    }
+
+    .leave-header-title {
+      font-size: 1.4rem;
+    }
+
+    .leave-body {
+      padding: 0.5rem;
+    }
+
+    .leave-section-title {
+      font-size: 1rem;
+      margin-top: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .leave-section-title::after {
+      width: 25px;
+      height: 1px;
+    }
+
+    .leave-table th,
+    .leave-table td {
+      padding: 0.3rem;
+      font-size: 0.8rem;
+    }
+
+    .leave-button {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+    }
+
+    .leave-filter {
+      margin-bottom: 0.25rem;
+    }
+
+    .leave-filter select {
+      padding: 0.25rem 0.4rem;
+      font-size: 0.8rem;
+    }
+
+    .leave-modal-header {
+      padding: 0.5rem;
+    }
+
+    .leave-modal-title {
+      font-size: 1.2rem;
+    }
+
+    .leave-modal-body {
+      padding: 0.5rem;
+    }
+
+    .leave-modal-footer {
+      padding: 0.25rem;
+    }
+
+    .form-error {
+      margin: 0.25rem 0;
+      padding: 0.25rem;
+      font-size: 0.8rem;
+    }
+
+    .no-records {
+      padding: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .countdown {
+      font-size: 0.8rem;
+    }
   }
 `;
 
@@ -209,8 +314,8 @@ const LeaveAttendance = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Current date (March 06, 2025)
-  const currentDate = new Date('2025-03-06');
+  // Current date (March 11, 2025, updated to match current date)
+  const currentDate = new Date('2025-03-11');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -222,14 +327,14 @@ const LeaveAttendance = () => {
           .from('employees')
           .select('*');
         if (employeesError) throw employeesError;
-        setEmployees(employeesData);
+        setEmployees(employeesData || []); // Ensure data is an array
 
         // Fetch leave requests
         const { data: leaveData, error: leaveError } = await supabase
           .from('leave_requests')
           .select('*');
         if (leaveError) throw leaveError;
-        setLeaveRequests(leaveData);
+        setLeaveRequests(leaveData || []); // Ensure data is an array
         console.log('Fetched leave requests:', leaveData); // Debug log
       } catch (err) {
         setError('Failed to fetch data. Please try again later.');
@@ -386,9 +491,9 @@ const LeaveAttendance = () => {
           </Card.Header>
           <Card.Body className="leave-body">
             <h5 className="leave-section-title">Active Leave Requests</h5>
-            <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
               <div className="leave-filter">
-                <Form.Label className="me-2">Filter by Status:</Form.Label>
+                <Form.Label className="me-1">Filter by Status:</Form.Label>
                 <Form.Select
                   value={filterStatus}
                   onChange={handleFilterChange}
@@ -437,7 +542,7 @@ const LeaveAttendance = () => {
                           {request.status === 'Pending' && (
                             <>
                               <Button
-                                className="leave-button primary me-2"
+                                className="leave-button primary me-1"
                                 onClick={() => handleApprove(request.id)}
                               >
                                 Approve
@@ -451,11 +556,11 @@ const LeaveAttendance = () => {
                             </>
                           )}
                           <Link
-                            to="/hr-management/employee-list" // Points to employee list
-                            className="btn btn-sm leave-button secondary mt-2 d-block"
+                            to="/hr-management/employee-list"
+                            className="btn btn-sm leave-button secondary mt-1"
                             onClick={(e) =>
                               console.log('Link clicked, navigating to:', '/hr-management/employee-list')
-                            } // Debug log
+                            }
                           >
                             View Employee
                           </Link>
@@ -495,8 +600,8 @@ const LeaveAttendance = () => {
               </Table>
             )}
 
-            <div className="text-center mt-4">
-              <Link to="/hr-management/leave-policy" className="btn leave-button secondary me-2">
+            <div className="text-center mt-2">
+              <Link to="/hr-management/leave-policy" className="btn leave-button secondary me-1">
                 View Leave Policy
               </Link>
               <Button onClick={handleExportReport} className="leave-button primary">
@@ -513,7 +618,7 @@ const LeaveAttendance = () => {
           <Modal.Body className="leave-modal-body">
             {error && <div className="form-error">{error}</div>}
             <Form onSubmit={handleSubmitRequest}>
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-2">
                 <Form.Label>Employee</Form.Label>
                 <Form.Control
                   as="select"
@@ -537,7 +642,7 @@ const LeaveAttendance = () => {
                   ))}
                 </Form.Control>
               </Form.Group>
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-2">
                 <Form.Label>Start Date</Form.Label>
                 <Form.Control
                   type="date"
@@ -547,7 +652,7 @@ const LeaveAttendance = () => {
                   required
                 />
               </Form.Group>
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-2">
                 <Form.Label>End Date</Form.Label>
                 <Form.Control
                   type="date"
@@ -557,7 +662,7 @@ const LeaveAttendance = () => {
                   required
                 />
               </Form.Group>
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-2">
                 <Form.Label>Leave Type</Form.Label>
                 <Form.Control
                   as="select"

@@ -12,9 +12,8 @@ import {
   FaSignOutAlt,
   FaFileAlt,
   FaComments,
-  FaArrowLeft,
   FaUserFriends,
-  FaBars, // Added hamburger icon
+  FaBars,
 } from 'react-icons/fa';
 import { Collapse } from 'react-bootstrap';
 
@@ -24,158 +23,165 @@ const customStyles = `
 
   .sidebar {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    border: 3px solid #28a745;
-    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.1), -6px -6px 12px rgba(255, 255, 255, 0.5);
-    position: sticky;
-    top: 15px;
-    margin: 15px 5px;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-    width: 220px;
-    max-height: calc(100vh - 30px);
-    overflow-y: auto;
-  }
-
-  .sidebar:hover {
-    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.15), -8px -8px 16px rgba(255, 255, 255, 0.7);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    border: 3px solid #28a745 !important;
+    position: sticky !important;
+    top: 15px !important;
+    margin: 15px 0 15px 5px !important;
+    padding: 8px !important; /* Match .p-2 */
+    border-radius: 10px !important;
+    transition: all 0.3s ease !important;
+    width: 220px !important;
+    max-height: calc(100vh - 30px) !important;
+    overflow-y: auto !important;
+    z-index: 100 !important;
+    box-sizing: border-box !important;
   }
 
   .hamburger-menu {
-    display: none;
-    font-size: 1.5rem;
-    color: #28a745;
-    cursor: pointer;
-    padding: 10px;
+    display: none !important;
+    font-size: 1.5rem !important;
+    color: #28a745 !important;
+    cursor: pointer !important;
+    padding: 10px !important;
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    z-index: 1100 !important;
+    background: #fff !important;
+    border-radius: 5px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 1000 !important;
+  }
+
+  .sidebar-overlay.open {
+    display: block !important;
   }
 
   @media (max-width: 768px) {
     .hamburger-menu {
-      display: block;
+      display: block !important;
     }
 
     .sidebar {
-      position: fixed;
-      left: -260px;
-      width: 250px;
-      height: 100%;
-      margin: 0;
-      z-index: 1000;
-      transition: left 0.3s ease;
+      position: fixed !important;
+      left: -250px !important;
+      width: 250px !important;
+      height: 100% !important;
+      margin: 0 !important;
+      z-index: 1001 !important;
+      transition: left 0.3s ease !important;
+      top: 0 !important;
     }
 
     .sidebar.open {
-      left: 0;
+      left: 0 !important;
     }
 
     .sidebar-header {
-      padding: 1rem;
+      padding: 1rem !important;
     }
   }
 
-  /* Rest of your existing styles remain unchanged */
   .sidebar-header {
-    color: #1f2937;
-    font-weight: 700;
-    font-size: 1.25rem;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    color: #1f2937 !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+    letter-spacing: 0.5px !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 0.75rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
   }
 
   .sidebar-nav-item {
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    border-radius: 6px;
-    margin: 2px 0;
-    padding: 0.25rem;
+    transition: background-color 0.3s ease, transform 0.3s ease !important;
+    border-radius: 6px !important;
+    margin: 2px 0 !important;
+    padding: 0.25rem !important;
   }
 
   .sidebar-nav-item:hover {
-    background-color: #f1f5f9;
-    transform: translateX(3px);
+    background-color: #f1f5f9 !important;
+    transform: translateX(3px) !important;
   }
 
   .sidebar-nav-link {
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: inherit;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    padding: 8px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
+    color: inherit !important;
   }
 
   .sidebar-sub-item {
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    border-radius: 4px;
-    margin: 2px 0;
-    padding: 0.25rem;
+    transition: background-color 0.3s ease, transform 0.3s ease !important;
+    border-radius: 4px !important;
+    margin: 2px 0 !important;
+    padding: 0.25rem !important;
   }
 
   .sidebar-sub-item:hover {
-    background-color: #e6f0fa;
-    transform: translateX(2px);
+    background-color: #e6f0fa !important;
+    transform: translateX(2px) !important;
   }
 
   .sidebar-sub-link {
-    font-weight: 500;
-    font-size: 0.85rem;
-    padding: 6px 12px;
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: inherit;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+    padding: 6px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
+    color: inherit !important;
   }
 
   .sidebar-icon {
-    transition: transform 0.3s ease;
-    margin-right: 8px;
-    font-size: 1rem;
+    transition: transform 0.3s ease !important;
+    margin-right: 8px !important;
+    font-size: 1rem !important;
   }
 
   .sidebar-nav-item:hover .sidebar-icon,
   .sidebar-sub-item:hover .sidebar-icon {
-    transform: scale(1.1);
-  }
-
-  .back-arrow {
-    color: #28a745;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    margin-left: 8px;
-    margin-right: 8px;
-    font-size: 1rem;
-  }
-
-  .back-arrow:hover {
-    transform: scale(1.1);
+    transform: scale(1.1) !important;
   }
 
   .sidebar::-webkit-scrollbar {
-    width: 6px;
+    width: 6px !important;
   }
 
   .sidebar::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 3px;
+    background: #f1f5f9 !important;
+    border-radius: 3px !important;
   }
 
   .sidebar::-webkit-scrollbar-thumb {
-    background: #28a745;
-    border-radius: 3px;
+    background: #28a745 !important;
+    border-radius: 3px !important;
   }
 
   .sidebar::-webkit-scrollbar-thumb:hover {
-    background: #047857;
+    background: #047857 !important;
   }
 `;
 
-const SidebarComponent = () => {
+const SidebarComponent = ({ onLogout }) => {
   const [employeeMenuOpen, setEmployeeMenuOpen] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Added state for mobile sidebar
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
   const activeParentStyle = {
@@ -202,7 +208,6 @@ const SidebarComponent = () => {
     color: '#28a745',
   };
 
-  // Toggle sidebar on mobile
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -216,6 +221,12 @@ const SidebarComponent = () => {
         <FaBars />
       </div>
 
+      {/* Overlay to close sidebar on mobile */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
       <div
         className={`sidebar p-2 ${sidebarOpen ? 'open' : ''}`}
         style={{
@@ -223,17 +234,14 @@ const SidebarComponent = () => {
           width: '220px',
         }}
       >
-        <h4 className="sidebar-header mb-3">
-          
-          HR Portal
-        </h4>
+        <h4 className="sidebar-header mb-3">HR Portal</h4>
         <ul className="nav flex-column">
           <li className="sidebar-nav-item mb-1">
             <NavLink
               to="/dashboard"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
-              onClick={() => setSidebarOpen(false)} // Close sidebar on click in mobile
+              onClick={() => setSidebarOpen(false)}
             >
               <FaHome className="sidebar-icon" style={iconStyle} />
               Dashboard
@@ -405,10 +413,14 @@ const SidebarComponent = () => {
           </li>
           <li className="sidebar-nav-item mb-1">
             <NavLink
-              to="/"
+              to="/admin-login"
               className="sidebar-nav-link d-flex align-items-center"
               style={({ isActive }) => (isActive ? activeParentStyle : inactiveParentStyle)}
-              onClick={() => setSidebarOpen(false)}
+              onClick={(e) => {
+                e.preventDefault();
+                onLogout();
+                setSidebarOpen(false);
+              }}
             >
               <FaSignOutAlt className="sidebar-icon" style={iconStyle} />
               Logout

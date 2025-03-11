@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Form, Button, Card } from 'react-bootstrap';
 import { FaArrowLeft } from 'react-icons/fa';
 import BiogexLogo from '../assets/biogexlogo.jpeg';
-import { supabase } from '../supabaseClient'; // Import Supabase client
+import { supabase } from '../supabaseClient';
 
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
@@ -48,25 +48,26 @@ const AdminLogin = ({ onAdminLogin }) => {
     setError('');
 
     try {
-      // Check admin credentials against the admins table
-      const { data, error } = await supabase
+      console.log("Attempting login with:", { email, password });
+      const { data, error: queryError } = await supabase
         .from('admins')
         .select('*')
         .eq('email', email)
-        .eq('password', password) // Note: In production, use hashed passwords
+        .eq('password', password)
         .single();
+      console.log("Admin check response:", { data, queryError });
 
-      if (error || !data) {
+      if (queryError || !data) {
         setError('Invalid email or password');
         return;
       }
 
-      // If credentials are correct, trigger onAdminLogin and navigate
+      // Successful login, trigger admin state and navigate to employee list
       onAdminLogin();
-      navigate('/hr-management');
+      navigate('/hr-management/employee-list');
     } catch (err) {
-      setError('An error occurred. Please try again.');
-      console.error(err);
+      setError('An unexpected error occurred. Check the console.');
+      console.error('Login error:', err);
     }
   };
 

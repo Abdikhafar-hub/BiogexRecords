@@ -10,65 +10,72 @@ const customStyles = `
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
-    padding: 2rem 1rem;
+    padding: 1.5rem 0.5rem; /* Reduced padding */
+    box-sizing: border-box;
   }
 
   .customer-list-card {
     background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
     border: 2px solid transparent;
     border-image: linear-gradient(90deg, #047857 0%, #28a745 100%) 1;
-    border-radius: 20px;
-    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5);
+    border-radius: 15px; /* Slightly smaller radius */
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.08), -6px -6px 12px rgba(255, 255, 255, 0.4); /* Reduced shadow */
     transition: all 0.3s ease;
+    overflow-x: auto;
   }
 
   .customer-list-card:hover {
-    box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.15), -10px -10px 20px rgba(255, 255, 255, 0.7);
+    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.12), -8px -8px 16px rgba(255, 255, 255, 0.6);
   }
 
   .customer-list-header {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #fff;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-    padding: 1.5rem;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 1rem; /* Reduced padding */
     text-align: center;
   }
 
   .customer-list-title {
-    font-size: 2rem;
+    font-size: 1.8rem; /* Slightly smaller title */
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px; /* Reduced spacing */
   }
 
   .customer-list-body {
-    padding: 2rem 1.5rem;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius 16px;
+    padding: 1rem 0.75rem; /* Reduced padding */
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
     background-color: #f8f9fa;
   }
 
   .customer-list-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
     font-family: 'Poppins', sans-serif;
+    min-width: 600px; /* Reduced minimum width for compactness */
   }
 
   .customer-list-table th {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #fff;
     font-weight: 600;
-    padding: 1rem;
+    padding: 0.75rem; /* Reduced padding */
     text-align: left;
     border-bottom: 2px solid #28a745;
+    font-size: 0.9rem; /* Smaller text */
   }
 
   .customer-list-table td {
-    padding: 1rem;
+    padding: 0.5rem; /* Reduced padding */
     vertical-align: middle;
     border-bottom: 1px solid #d1d5db;
     color: #1f2937;
+    font-size: 0.85rem; /* Smaller text */
+    white-space: nowrap; /* Prevents text wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Truncates long text */
   }
 
   .customer-list-table tr {
@@ -81,24 +88,26 @@ const customStyles = `
 
   .customer-list-table th:first-child,
   .customer-list-table td:first-child {
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
   }
 
   .customer-list-table th:last-child,
   .customer-list-table td:last-child {
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
   }
 
   .customer-list-table .details-btn {
     background-color: #28a745;
     color: #fff;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    padding: 0.3rem 0.6rem; /* Reduced padding */
+    border-radius: 6px;
     text-decoration: none;
     font-weight: 500;
     transition: background-color 0.3s ease;
+    display: inline-block;
+    font-size: 0.8rem; /* Smaller text */
   }
 
   .customer-list-table .details-btn:hover {
@@ -109,9 +118,9 @@ const customStyles = `
   .error-text,
   .empty-text {
     font-family: 'Poppins', sans-serif;
-    font-size: 1.2rem;
+    font-size: 1rem;
     text-align: center;
-    padding: 2rem;
+    padding: 1.5rem;
   }
 
   .loading-text {
@@ -123,11 +132,59 @@ const customStyles = `
     background: #f8d7da;
     border-left: 4px solid #dc3545;
     margin: 1rem;
-    border-radius: 8px;
+    border-radius: 6px;
   }
 
   .empty-text {
     color: #6c757d;
+  }
+
+  /* Mobile Responsiveness (below 768px, matching EmployeeList) */
+  @media (max-width: 768px) {
+    .customer-list-container {
+      padding: 1rem 0.25rem; /* Further reduced padding */
+    }
+
+    .customer-list-card {
+      border-radius: 10px;
+      box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.06), -3px -3px 6px rgba(255, 255, 255, 0.3);
+    }
+
+    .customer-list-header {
+      padding: 0.75rem;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+
+    .customer-list-title {
+      font-size: 1.4rem;
+    }
+
+    .customer-list-body {
+      padding: 0.75rem 0.5rem;
+    }
+
+    .customer-list-table {
+      min-width: 600px; /* Maintains horizontal scroll */
+    }
+
+    .customer-list-table th,
+    .customer-list-table td {
+      padding: 0.4rem; /* Further reduced padding */
+      font-size: 0.8rem; /* Smaller text */
+    }
+
+    .customer-list-table .details-btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .loading-text,
+    .error-text,
+    .empty-text {
+      font-size: 0.9rem;
+      padding: 1rem;
+    }
   }
 `;
 
@@ -203,7 +260,7 @@ const CustomerList = () => {
                     <th>Contact Person</th>
                     <th>Email</th>
                     <th>Phone Number</th>
-                    <th>Details</th> {/* New column for Details */}
+                    <th>Details</th>
                   </tr>
                 </thead>
                 <tbody>
