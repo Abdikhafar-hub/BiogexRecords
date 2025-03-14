@@ -114,17 +114,34 @@ const customStyles = `
     background-color: #047857;
   }
 
-  .loading-text,
+  .loading-container {
+    min-height: 100vh; /* Match container height */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center spinner vertically and horizontally */
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Match background */
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857; /* Green color matching theme */
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   .error-text,
   .empty-text {
     font-family: 'Poppins', sans-serif;
     font-size: 1rem;
     text-align: center;
     padding: 1.5rem;
-  }
-
-  .loading-text {
-    color: #4b5563;
   }
 
   .error-text {
@@ -179,7 +196,13 @@ const customStyles = `
       font-size: 0.75rem;
     }
 
-    .loading-text,
+    .spinner {
+      width: 30px; /* Slightly smaller on mobile */
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
+    }
+
     .error-text,
     .empty-text {
       font-size: 0.9rem;
@@ -236,7 +259,14 @@ const CustomerList = () => {
     };
   }, []);
 
-  if (loading) return <div className="loading-text">Loading...</div>;
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
   if (error) return <div className="error-text">{error}</div>;
 
   return (

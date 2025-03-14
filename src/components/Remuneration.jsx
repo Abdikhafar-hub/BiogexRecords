@@ -136,6 +136,28 @@ const customStyles = `
     transform: translateY(-1px);
   }
 
+  .loading-container {
+    min-height: 100vh; /* Match container height */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center spinner vertically and horizontally */
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Match background */
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857; /* Green color matching theme */
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   @media (max-width: 768px) {
     .mysary-container {
       padding: 0.5rem 0.25rem; /* Further reduced padding */
@@ -179,6 +201,13 @@ const customStyles = `
       padding: 0.25rem 0.6rem;
       font-size: 0.75rem;
     }
+
+    .spinner {
+      width: 30px; /* Slightly smaller on mobile */
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
+    }
   }
 `;
 
@@ -213,7 +242,14 @@ const MySaryList = () => {
     navigate(`/hr-management/remuneration/${employeeId}`);
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
   if (error) return <p>{error}</p>;
 
   return (
