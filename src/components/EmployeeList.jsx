@@ -44,7 +44,7 @@ const customStyles = `
   .employee-list-body {
     padding: 2rem 1.5rem;
     border-bottom-left-radius: 16px;
-    border-bottom-right-radius 16px;
+    border-bottom-right-radius: 16px;
     background-color: #f8f9fa;
   }
 
@@ -93,7 +93,7 @@ const customStyles = `
   .employee-list-table th:last-child,
   .employee-list-table td:last-child {
     border-top-right-radius: 8px;
-    border-bottom-right-radius 8px;
+    border-bottom-right-radius: 8px;
   }
 
   .employee-list-table .action-btn {
@@ -112,17 +112,34 @@ const customStyles = `
     background-color: #047857;
   }
 
-  .loading-text,
+  .loading-container {
+    min-height: 100vh; /* Match container height */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center spinner vertically and horizontally */
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Match background */
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857; /* Green color matching theme */
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   .error-text,
   .empty-text {
     font-family: 'Poppins', sans-serif;
     font-size: 1.2rem;
     text-align: center;
     padding: 2rem;
-  }
-
-  .loading-text {
-    color: #4b5563;
   }
 
   .error-text {
@@ -165,7 +182,13 @@ const customStyles = `
       font-size: 0.8rem;
     }
 
-    .loading-text,
+    .spinner {
+      width: 30px; /* Slightly smaller on mobile */
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
+    }
+
     .error-text,
     .empty-text {
       font-size: 1rem;
@@ -191,6 +214,13 @@ const customStyles = `
 
     .employee-list-table {
       min-width: 400px; /* Further reduced min-width */
+    }
+
+    .spinner {
+      width: 25px; /* Even smaller on very small screens */
+      height: 25px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
     }
   }
 `;
@@ -242,7 +272,14 @@ const EmployeeList = ({ onSelectEmployee }) => {
     };
   }, []);
 
-  if (loading) return <p className="loading-text">Loading...</p>;
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
   if (error) return <p className="error-text">{error}</p>;
 
   return (

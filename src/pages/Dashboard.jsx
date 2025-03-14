@@ -39,6 +39,29 @@ const customStyles = `
     0% { opacity: 0; transform: translateY(10px); }
     100% { opacity: 1; transform: translateY(0); }
   }
+
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .dashboard-title {
+      font-size: 1.75rem; /* Reduced font size for mobile */
+    }
+
+    .dashboard-subtitle {
+      font-size: 1rem; /* Slightly smaller subtitle */
+      margin-bottom: 1.5rem; /* Slightly less margin */
+    }
+  }
+
+  @media (max-width: 576px) {
+    .dashboard-title {
+      font-size: 1.5rem; /* Even smaller font size for very small screens */
+    }
+
+    .dashboard-subtitle {
+      font-size: 0.875rem; /* Even smaller subtitle */
+      margin-bottom: 1rem; /* Further reduced margin */
+    }
+  }
 `;
 
 const Dashboard = () => {
@@ -49,7 +72,7 @@ const Dashboard = () => {
 
       <Container className="d-flex justify-content-center align-items-center vh-100">
         <div className="text-center">
-          <h2 className="mb-1 fw-bold dashboard-title">Welcome to Biogex Pharma</h2>
+          <h2 className="mb-1 fw-bold dashboard-title">Welcome to Biogex Pharma LTD</h2>
           <h4 className="dashboard-subtitle">Empowering Healthcare for a Better Tomorrow</h4>
           <DashboardCards />
         </div>
