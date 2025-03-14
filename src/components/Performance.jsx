@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 // Custom CSS for compact styling
 const customStyles = `
   .performance-container {
     padding: 1rem 0.5rem;
     box-sizing: border-box;
+    min-height: 100vh; /* Ensure full height for spinner centering */
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Match other components */
   }
 
   .performance-card {
@@ -94,6 +97,28 @@ const customStyles = `
     padding: 1rem;
     text-align: center;
     color: #6c757d;
+  }
+
+  .loading-container {
+    min-height: 100vh; /* Match container height */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center spinner vertically and horizontally */
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Match background */
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857; /* Green color matching theme */
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
   /* Modal Adjustments */
@@ -197,18 +222,49 @@ const customStyles = `
       padding: 0.15rem 0.4rem;
       font-size: 0.75rem;
     }
+
+    .spinner {
+      width: 30px; /* Slightly smaller on mobile */
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
+    }
   }
 `;
 
-const Performance = ({ employees = [] }) => { // Default to empty array if undefined
+const Performance = () => {
   const [reviews, setReviews] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [newReview, setNewReview] = useState({
     employeeName: '',
     date: '',
     rating: '',
     feedback: '',
   });
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('employees')
+          .select('*');
+        if (error) throw error;
+
+        setEmployees(data || []); // Ensure data is an array
+      } catch (err) {
+        setError('Failed to fetch employees.');
+        console.error('Error fetching employees:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
 
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
@@ -228,6 +284,16 @@ const Performance = ({ employees = [] }) => { // Default to empty array if undef
     });
     handleCloseModal();
   };
+
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
+  if (error) return <p className="text-center text-danger">{error}</p>;
 
   return (
     <>
@@ -295,8 +361,8 @@ const Performance = ({ employees = [] }) => { // Default to empty array if undef
                 >
                   <option value="">Select Employee</option>
                   {employees.map((emp) => (
-                    <option key={emp.employeeCode} value={emp.fullName}>
-                      {emp.fullName}
+                    <option key={emp.id} value={emp.full_name}>
+                      {emp.full_name}
                     </option>
                   ))}
                 </Form.Control>

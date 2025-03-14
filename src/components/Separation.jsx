@@ -3,105 +3,242 @@ import { Card, Table, Button, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS for Mobile Responsiveness
+// Custom CSS with Spinner and Enhanced Mobile Responsiveness
 const customStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
   .separation-container {
-    padding: 1rem;
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
+    padding: 2rem 1rem;
   }
 
   .separation-card {
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border: 2px solid transparent;
+    border-image: linear-gradient(90deg, #047857 0%, #28a745 100%) 1;
+    border-radius: 20px;
+    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 95%;
+    margin: 0 auto;
+    overflow-x: auto; /* Allow horizontal scrolling for table */
+  }
+
+  .separation-card:hover {
+    box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.15), -10px -10px 20px rgba(255, 255, 255, 0.7);
   }
 
   .separation-header {
-    background-color: #28a745;
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #fff;
-    padding: 1rem;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
+    padding: 1.5rem;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
     text-align: center;
   }
 
   .separation-header h2 {
-    font-size: 1.75rem;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 1px;
     margin: 0;
   }
 
   .separation-body {
-    padding: 1rem;
+    padding: 2rem 1.5rem;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
   }
 
   .add-separation-btn {
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
-    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
+    color: #fff;
+    border: none;
+    margin-bottom: 1.5rem;
+  }
+
+  .add-separation-btn:hover {
+    background: linear-gradient(90deg, #28a745 0%, #047857 100%);
+    box-shadow: 0 6px 16px rgba(4, 120, 87, 0.5);
+    transform: translateY(-2px);
   }
 
   .separation-table {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    min-width: 600px; /* Ensure table scrolls horizontally on small screens */
     font-size: 0.9rem;
   }
 
-  .separation-table th,
-  .separation-table td {
+  .separation-table th {
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
+    color: #fff;
+    font-weight: 600;
     padding: 0.75rem;
     text-align: center;
+    white-space: nowrap;
+  }
+
+  .separation-table td {
+    color: #4b5563;
+    padding: 0.75rem;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .separation-table tr:hover {
+    background-color: #f1f5f9;
   }
 
   .separation-table .btn-sm {
     font-size: 0.85rem;
     padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
+    color: #fff;
+    border: none;
+    transition: all 0.3s ease;
   }
 
-  .modal-title {
-    font-size: 1.25rem;
+  .separation-table .btn-sm:hover {
+    background: linear-gradient(90deg, #28a745 0%, #047857 100%);
+    box-shadow: 0 4px 8px rgba(4, 120, 87, 0.4);
   }
 
-  .modal-body {
+  .separation-modal-header {
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
+    color: #fff;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
     padding: 1rem;
   }
 
+  .modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
   .modal-footer {
-    padding: 0.75rem;
+    border-top: none;
+    padding: 1rem;
   }
 
   .modal-footer .btn {
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
   }
 
-  /* Mobile Responsiveness */
+  .modal-footer .btn-secondary {
+    background: #6c757d;
+    border: none;
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+  }
+
+  .modal-footer .btn-secondary:hover {
+    background: #5a6268;
+    box-shadow: 0 6px 16px rgba(108, 117, 125, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .modal-footer .btn-success {
+    background: linear-gradient(90deg, #047857 0%, #28a745 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
+  }
+
+  .modal-footer .btn-success:hover {
+    background: linear-gradient(90deg, #28a745 0%, #047857 100%);
+    box-shadow: 0 6px 16px rgba(4, 120, 87, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .form-error {
+    color: #dc3545;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .loading-container {
+    min-height: 100vh; /* Match container height */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center spinner vertically and horizontally */
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Match background */
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857; /* Green color matching theme */
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Mobile Responsiveness (≤768px) */
   @media (max-width: 768px) {
     .separation-container {
-      padding: 0.5rem;
+      padding: 1rem 0.5rem;
     }
 
     .separation-card {
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5);
+      max-width: 100%;
     }
 
     .separation-header {
-      padding: 0.75rem;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
+      padding: 1rem;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
     }
 
     .separation-header h2 {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
+      letter-spacing: 0.5px;
     }
 
     .separation-body {
-      padding: 0.75rem;
+      padding: 1rem;
       max-height: calc(100vh - 150px); /* Adjust for header and footer */
       overflow-y: auto;
       -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
     }
 
     .add-separation-btn {
-      font-size: 0.8rem;
-      padding: 0.4rem 0.75rem;
-      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      margin-bottom: 1rem;
     }
 
     .separation-table {
@@ -118,12 +255,16 @@ const customStyles = `
       padding: 0.2rem 0.4rem;
     }
 
+    .separation-modal-header {
+      padding: 0.75rem;
+    }
+
     .modal-title {
-      font-size: 1rem;
+      font-size: 1.25rem;
     }
 
     .modal-body {
-      padding: 0.75rem;
+      padding: 1rem;
     }
 
     .modal-body .form-group {
@@ -141,12 +282,19 @@ const customStyles = `
     }
 
     .modal-footer {
-      padding: 0.5rem;
+      padding: 0.75rem;
     }
 
     .modal-footer .btn {
       font-size: 0.8rem;
       padding: 0.4rem 0.75rem;
+    }
+
+    .spinner {
+      width: 30px; /* Smaller on mobile */
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
     }
   }
 `;
@@ -176,7 +324,7 @@ const Separation = () => {
           .from('employees')
           .select('*');
         if (employeesError) throw employeesError;
-        setEmployees(employeesData);
+        setEmployees(employeesData || []); // Ensure array even if null
 
         // Fetch HR actions (for terminations)
         const { data: actionsData, error: actionsError } = await supabase
@@ -184,14 +332,14 @@ const Separation = () => {
           .select('*')
           .eq('action', 'Termination');
         if (actionsError) throw actionsError;
-        setHRActions(actionsData);
+        setHRActions(actionsData || []); // Ensure array even if null
 
         // Fetch separations
         const { data: separationsData, error: separationsError } = await supabase
           .from('separations')
           .select('*');
         if (separationsError) throw separationsError;
-        setSeparations(separationsData);
+        setSeparations(separationsData || []); // Ensure array even if null
       } catch (err) {
         setError('Failed to fetch data.');
         console.error('Error fetching data:', err);
@@ -224,7 +372,7 @@ const Separation = () => {
     }
 
     try {
-      const selectedEmployee = employees.find(emp => emp.id === newSeparation.employeeId);
+      const selectedEmployee = employees.find((emp) => emp.id === newSeparation.employeeId);
       if (!selectedEmployee) throw new Error('Employee not found');
 
       const separationData = {
@@ -258,7 +406,14 @@ const Separation = () => {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
   if (error) return <p>{error}</p>;
 
   const terminations = hrActions.map((action) => ({
@@ -279,7 +434,7 @@ const Separation = () => {
             <h2>Separation Management</h2>
           </Card.Header>
           <Card.Body className="separation-body">
-            <Button variant="success" className="add-separation-btn" onClick={handleShowModal}>
+            <Button className="add-separation-btn" onClick={handleShowModal}>
               Add Separation
             </Button>
             {separations.length === 0 && terminations.length === 0 ? (
@@ -297,7 +452,7 @@ const Separation = () => {
                 </thead>
                 <tbody>
                   {[...separations, ...terminations].map((separation) => (
-                    <tr key={separation.id || separation.employee_id}>
+                    <tr key={separation.id || separation.employeeId}>
                       <td>{separation.employee_name || separation.employeeName || 'Unknown'}</td>
                       <td>{separation.type}</td>
                       <td>{separation.date}</td>
@@ -305,7 +460,7 @@ const Separation = () => {
                       <td>
                         <Link
                           to="/hr-management/employee-list"
-                          className="btn btn-sm btn-primary"
+                          className="btn btn-sm"
                         >
                           View Employee
                         </Link>
@@ -319,11 +474,11 @@ const Separation = () => {
         </Card>
 
         <Modal show={showModal} onHide={handleCloseModal}>
-          <Modal.Header closeButton>
+          <Modal.Header closeButton className="separation-modal-header">
             <Modal.Title className="modal-title">Add Separation</Modal.Title>
           </Modal.Header>
           <Modal.Body className="modal-body">
-            {error && <div style={{ color: 'red' }}>{error}</div>}
+            {error && <div className="form-error">{error}</div>}
             <Form>
               <Form.Group className="mb-3 form-group">
                 <Form.Label className="form-label">Employee Name</Form.Label>
@@ -332,7 +487,7 @@ const Separation = () => {
                   name="employeeId"
                   value={newSeparation.employeeId}
                   onChange={(e) => {
-                    const selectedEmployee = employees.find(emp => emp.id === e.target.value);
+                    const selectedEmployee = employees.find((emp) => emp.id === e.target.value);
                     setNewSeparation((prev) => ({
                       ...prev,
                       employeeId: e.target.value,

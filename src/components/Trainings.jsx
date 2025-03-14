@@ -3,7 +3,7 @@ import { Card, Table, Button, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS for styling (reusing from MySary)
+// Custom CSS with Spinner and Mobile Responsiveness
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -21,6 +21,10 @@ const customStyles = `
     border-radius: 20px;
     box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.5);
     transition: all 0.3s ease;
+    width: 100%;
+    max-width: 95%;
+    margin: 0 auto;
+    overflow-x: auto; /* Allow horizontal scrolling for table */
   }
 
   .mysary-card:hover {
@@ -72,17 +76,30 @@ const customStyles = `
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    min-width: 600px; /* Ensure table scrolls horizontally on small screens */
   }
 
   .mysary-table th {
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
     color: #fff;
     font-weight: 600;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 
   .mysary-table td {
     color: #4b5563;
     vertical-align: middle;
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mysary-table tr:hover {
+    background-color: #f1f5f9;
   }
 
   .mysary-button {
@@ -111,6 +128,7 @@ const customStyles = `
     color: #fff;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
+    padding: 1rem;
   }
 
   .mysary-modal-title {
@@ -137,6 +155,111 @@ const customStyles = `
     border-left: 4px solid #dc3545;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .loading-container {
+    min-height: 100vh; /* Match container height */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center spinner vertically and horizontally */
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Match background */
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857; /* Green color matching theme */
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Mobile Responsiveness (≤768px) */
+  @media (max-width: 768px) {
+    .mysary-container {
+      padding: 1rem 0.5rem;
+    }
+
+    .mysary-card {
+      border-radius: 12px;
+      box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5);
+      max-width: 100%;
+    }
+
+    .mysary-header {
+      padding: 1rem;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+
+    .mysary-header-title {
+      font-size: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+
+    .mysary-body {
+      padding: 1rem;
+    }
+
+    .mysary-section-title {
+      font-size: 1.25rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .mysary-section-title::after {
+      width: 30px;
+      height: 2px;
+    }
+
+    .mysary-table th {
+      padding: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .mysary-table td {
+      padding: 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .mysary-button {
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+    }
+
+    .mysary-modal-header {
+      padding: 0.75rem;
+    }
+
+    .mysary-modal-title {
+      font-size: 1.25rem;
+    }
+
+    .mysary-modal-body {
+      padding: 1rem;
+    }
+
+    .mysary-modal-footer {
+      padding: 0.75rem;
+    }
+
+    .form-error {
+      font-size: 0.8rem;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+    }
+
+    .spinner {
+      width: 30px; /* Smaller on mobile */
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
+    }
   }
 `;
 
@@ -165,14 +288,14 @@ const Trainings = () => {
           .from('employees')
           .select('*');
         if (employeesError) throw employeesError;
-        setEmployees(employeesData);
+        setEmployees(employeesData || []); // Ensure array even if null
 
         // Fetch trainings
         const { data: trainingData, error: trainingError } = await supabase
           .from('trainings')
           .select('*');
         if (trainingError) throw trainingError;
-        setTrainings(trainingData);
+        setTrainings(trainingData || []); // Ensure array even if null
       } catch (err) {
         setError('Failed to fetch data.');
         console.error('Error fetching data:', err);
@@ -205,7 +328,7 @@ const Trainings = () => {
     }
 
     try {
-      const selectedEmployee = employees.find(emp => emp.id === newTraining.employeeId);
+      const selectedEmployee = employees.find((emp) => emp.id === newTraining.employeeId);
       if (!selectedEmployee) throw new Error('Employee not found');
 
       const trainingData = {
@@ -214,7 +337,7 @@ const Trainings = () => {
         training_name: newTraining.trainingName,
         training_date: newTraining.trainingDate,
         description: newTraining.description,
-        status: newTraining.status, // Include status
+        status: newTraining.status,
       };
 
       const { data, error: insertError } = await supabase
@@ -241,7 +364,14 @@ const Trainings = () => {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
   if (error) return <p>{error}</p>;
 
   return (
@@ -327,7 +457,7 @@ const Trainings = () => {
                   name="employeeId"
                   value={newTraining.employeeId}
                   onChange={(e) => {
-                    const selectedEmployee = employees.find(emp => emp.id === e.target.value);
+                    const selectedEmployee = employees.find((emp) => emp.id === e.target.value);
                     setNewTraining((prev) => ({
                       ...prev,
                       employeeId: e.target.value,

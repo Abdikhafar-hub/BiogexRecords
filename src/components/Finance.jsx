@@ -3,7 +3,7 @@ import { Card, Table, Button, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS with Mobile Responsiveness
+// Custom CSS with Mobile Responsiveness and Spinner
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -160,6 +160,28 @@ const customStyles = `
     padding: 0.5rem 1rem;
   }
 
+  .loading-container {
+    min-height: 100vh; /* Match container height */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center spinner vertically and horizontally */
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Match background */
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857; /* Green color matching theme */
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   /* Mobile Responsiveness */
   @media (max-width: 768px) {
     .expense-container {
@@ -261,6 +283,13 @@ const customStyles = `
       font-size: 0.8rem;
       padding: 0.4rem 0.75rem;
     }
+
+    .spinner {
+      width: 30px; /* Slightly smaller on mobile */
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
+    }
   }
 `;
 
@@ -289,14 +318,14 @@ const ExpenseReimbursements = () => {
           .from('employees')
           .select('*');
         if (employeesError) throw employeesError;
-        setEmployees(employeesData);
+        setEmployees(employeesData || []); // Ensure array even if null
 
         // Fetch reimbursement records
         const { data: reimbursementData, error: reimbursementError } = await supabase
           .from('expense_reimbursements')
           .select('*');
         if (reimbursementError) throw reimbursementError;
-        setReimbursements(reimbursementData);
+        setReimbursements(reimbursementData || []); // Ensure array even if null
       } catch (err) {
         setError('Failed to fetch data.');
         console.error('Error fetching data:', err);
@@ -337,7 +366,7 @@ const ExpenseReimbursements = () => {
     }
 
     try {
-      const selectedEmployee = employees.find(emp => emp.id === newReimbursement.employeeId);
+      const selectedEmployee = employees.find((emp) => emp.id === newReimbursement.employeeId);
       if (!selectedEmployee) throw new Error('Employee not found');
 
       const reimbursementData = {
@@ -363,7 +392,7 @@ const ExpenseReimbursements = () => {
       console.error('Error submitting reimbursement:', err);
     }
   };
-    
+
   const handleUpdateStatus = async (id, newStatus) => {
     try {
       const { data, error: updateError } = await supabase
@@ -373,7 +402,7 @@ const ExpenseReimbursements = () => {
         .select()
         .single();
       if (updateError) throw updateError;
-  
+
       setReimbursements((prev) =>
         prev.map((reimbursement) =>
           reimbursement.id === id ? data : reimbursement
@@ -381,11 +410,18 @@ const ExpenseReimbursements = () => {
       );
     } catch (err) {
       setError('Failed to update reimbursement status.');
-      console.error('Error updating status:', JSON.stringify(err, null, 2)); // Log the full error object
+      console.error('Error updating status:', JSON.stringify(err, null, 2));
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
   if (error) return <p>{error}</p>;
 
   const totalPending = reimbursements
@@ -496,7 +532,7 @@ const ExpenseReimbursements = () => {
                   name="employeeId"
                   value={newReimbursement.employeeId}
                   onChange={(e) => {
-                    const selectedEmployee = employees.find(emp => emp.id === e.target.value);
+                    const selectedEmployee = employees.find((emp) => emp.id === e.target.value);
                     setNewReimbursement((prev) => ({
                       ...prev,
                       employeeId: e.target.value,

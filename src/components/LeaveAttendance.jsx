@@ -64,7 +64,7 @@ const customStyles = `
     width: 30px; /* Reduced width */
     height: 1.5px; /* Reduced height */
     background: linear-gradient(90deg, #047857 0%, #28a745 100%);
-    border-radius: 1px;
+    bordergn-radius: 1px;
   }
 
   .leave-table {
@@ -217,6 +217,28 @@ const customStyles = `
     font-size: 0.85rem; /* Smaller text */
   }
 
+  .loading-container {
+    min-height: 100vh; /* Match container height */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center spinner vertically and horizontally */
+    background: #f9fafb; /* Match background */
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857; /* Green color matching theme */
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   @media (max-width: 768px) {
     .leave-container {
       padding: 0.5rem 0.25rem; /* Further reduced padding */
@@ -294,6 +316,13 @@ const customStyles = `
 
     .countdown {
       font-size: 0.8rem;
+    }
+
+    .spinner {
+      width: 30px; /* Slightly smaller on mobile */
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
     }
   }
 `;
@@ -478,7 +507,14 @@ const LeaveAttendance = () => {
     );
   };
 
-  if (loading) return <p className="text-center">Loading...</p>;
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
   if (error) return <p className="text-center text-danger">{error}</p>;
 
   return (
