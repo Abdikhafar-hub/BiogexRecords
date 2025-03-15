@@ -1,6 +1,6 @@
 # Biogex Pharma
 
-This repository contains the source code for the Biogex Pharma web application, built using React and Vi
+This repository contains the source code for the Biogex Pharma web application, built using React and V
 
 ## Project Structure
 
