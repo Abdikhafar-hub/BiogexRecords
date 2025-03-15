@@ -361,56 +361,67 @@ const Documents = () => {
   };
 
   const handleSubmitDocument = async () => {
-    const requiredFields = ['employeeId', 'title', 'file'];
-    const emptyFields = requiredFields.filter((field) => !newDocument[field]);
+  const requiredFields = ['employeeId', 'title', 'file'];
+  const emptyFields = requiredFields.filter((field) => !newDocument[field]);
 
-    if (emptyFields.length > 0) {
-      setError(`Please fill in all required fields: ${emptyFields.join(', ')}`);
-      return;
-    }
+  if (emptyFields.length > 0) {
+    setError(`Please fill in all required fields: ${emptyFields.join(', ')}`);
+    return;
+  }
 
-    try {
-      const selectedEmployee = employees.find((emp) => emp.id === newDocument.employeeId);
-      if (!selectedEmployee) throw new Error('Employee not found');
+  try {
+    const selectedEmployee = employees.find((emp) => emp.id === newDocument.employeeId);
+    if (!selectedEmployee) throw new Error('Employee not found');
 
-      // Upload the file to Supabase Storage
-      const fileName = `${Date.now()}-${newDocument.file.name}`; // Ensure unique file names
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('biogex-files')
-        .upload(`documents/${fileName}`, newDocument.file);
-      if (uploadError) throw uploadError;
+    // Ensure unique filenames
+    const fileName = `${Date.now()}-${newDocument.file.name}`;
+    const filePath = `documents/${fileName}`;
 
-      const fileUrl = supabase.storage.from('biogex-files').getPublicUrl(`documents/${fileName}`).data.publicUrl;
+    // Upload file to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('biogex-files') // Ensure this is your correct bucket name
+      .upload(filePath, newDocument.file);
 
-      // Save document metadata to Supabase
-      const documentData = {
-        employee_id: newDocument.employeeId,
-        employee_name: selectedEmployee.full_name,
-        title: newDocument.title,
-        file_url: fileUrl,
-      };
+    if (uploadError) throw uploadError;
 
-      const { data, error: insertError } = await supabase
-        .from('documents')
-        .insert([documentData])
-        .select()
-        .single();
-      if (insertError) throw insertError;
+    // Retrieve public URL correctly
+    const { data } = supabase.storage
+      .from('biogex-files') // Use the correct bucket name
+      .getPublicUrl(filePath);
 
-      setDocuments((prev) => [...prev, data]);
-      setNewDocument({
-        employeeId: '',
-        employeeName: '',
-        title: '',
-        file: null,
-      });
-      setError('');
-      handleCloseModal();
-    } catch (err) {
-      setError('Failed to upload document.');
-      console.error('Error uploading document:', err);
-    }
-  };
+    if (!data) throw new Error('Failed to retrieve file URL');
+
+    const fileUrl = data.publicUrl;
+
+    // Save document metadata to Supabase
+    const documentData = {
+      employee_id: newDocument.employeeId,
+      employee_name: selectedEmployee.full_name,
+      title: newDocument.title,
+      file_url: fileUrl, // Store only the correct URL
+    };
+
+    const { error: insertError } = await supabase
+      .from('documents')
+      .insert([documentData]);
+
+    if (insertError) throw insertError;
+
+    setDocuments((prev) => [...prev, documentData]);
+    setNewDocument({
+      employeeId: '',
+      employeeName: '',
+      title: '',
+      file: null,
+    });
+    setError('');
+    handleCloseModal();
+  } catch (err) {
+    setError('Failed to upload document.');
+    console.error('Error uploading document:', err);
+  }
+};
+
 
   if (loading) return (
     <>

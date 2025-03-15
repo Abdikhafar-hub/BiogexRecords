@@ -148,43 +148,65 @@ const EmployeeDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [imageError, setImageError] = useState(false);
+  const [profilePic, setProfilePic] = useState(null);
+
 
   useEffect(() => {
-    let isMounted = true;
-
     const fetchEmployee = async () => {
       try {
         setLoading(true);
+        
+        // Fetch employee data
         const { data, error } = await supabase
           .from('employees')
           .select('*')
           .eq('id', id)
           .single();
-
+  
         if (error) throw error;
-        if (isMounted) {
-          console.log('Fetched employee:', data);
-          console.log('Profile pic URL:', data.profile_pic_url);
-          setEmployee(data);
+        if (!data) throw new Error("No employee found");
+  
+        console.log("Fetched Employee Data:", data);
+  
+        let imageUrl = null;
+  
+        // Ensure profile_pic_url exists and is only the filename
+        if (data.profile_pic_url && !data.profile_pic_url.startsWith("http")) {
+          const filePath = `profile-pics/${data.profile_pic_url}`;
+  
+          console.log("Fetching signed URL for:", filePath);
+  
+          // Generate signed URL
+          const { data: signedUrlData, error: signedUrlError } = await supabase
+            .storage
+            .from('biogex-files') // Ensure correct bucket name
+            .createSignedUrl(filePath, 3600); // 1-hour valid link
+  
+          if (signedUrlError) {
+            console.error("Error generating signed URL:", signedUrlError);
+          } else {
+            imageUrl = signedUrlData.signedUrl;
+          }
+        } else {
+          console.warn("No valid profile picture found.");
         }
+  
+        console.log("Final Profile Pic URL:", imageUrl);
+        setProfilePic(imageUrl || "/default-profile.png"); // Use fallback
+        setEmployee(data);
       } catch (err) {
-        if (isMounted) {
-          setError('Failed to fetch employee details: ' + err.message);
-          console.error(err);
-        }
+        setError("Failed to fetch employee details: " + err.message);
+        console.error(err);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
-
+  
     fetchEmployee();
-
-    return () => {
-      isMounted = false;
-    };
   }, [id]);
+  
+  
+  
 
   const handleDelete = async () => {
     const confirmDelete = window.confirm('Are you sure you want to delete this employee?');
@@ -223,14 +245,17 @@ const EmployeeDetails = () => {
                 <div className="col-md-4 text-center">
                   {!imageError && employee.profile_pic_url ? (
                     <img
-                      src={employee.profile_pic_url}
-                      alt="Profile"
-                      className="employee-details-image"
-                      onError={(e) => {
-                        console.log('Primary image failed to load, URL:', employee.profile_pic_url);
-                        setImageError(true);
-                      }}
-                    />
+                    src={profilePic}
+                    alt="Profile"
+                    className="employee-details-image"
+                    onError={(e) => {
+                      console.error("Image failed to load:", profilePic);
+                      e.target.src = "/default-profile.png"; // Use fallback image
+                    }}
+                  />
+                  
+                  
+                  
                   ) : (
                     <img
                       src="/default-profile.png"
