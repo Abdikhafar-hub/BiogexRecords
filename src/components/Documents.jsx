@@ -327,12 +327,34 @@ const Documents = () => {
         if (employeesError) throw employeesError;
         setEmployees(employeesData || []); // Ensure array even if null
 
-        // Fetch documents
+        // Fetch documents and generate signed URLs
         const { data: documentsData, error: documentsError } = await supabase
           .from('documents')
           .select('*');
         if (documentsError) throw documentsError;
-        setDocuments(documentsData || []); // Ensure array even if null
+
+        // Generate signed URLs for each document
+        const updatedDocuments = await Promise.all(
+          documentsData.map(async (doc) => {
+            let signedFileUrl = null;
+            // Check if file_url is a filename (not a full URL with a token)
+            if (doc.file_url && !doc.file_url.includes("token")) {
+              const filePath = `documents/${doc.file_url}`;
+              const { data: signedUrlData, error: signedUrlError } = await supabase
+                .storage
+                .from('biogex-files')
+                .createSignedUrl(filePath, 3600); // 1-hour expiry
+              if (signedUrlError) {
+                console.error('Error generating signed URL for document:', signedUrlError);
+              } else {
+                signedFileUrl = signedUrlData.signedUrl;
+              }
+            }
+            return { ...doc, signed_file_url: signedFileUrl };
+          })
+        );
+
+        setDocuments(updatedDocuments || []); // Ensure array even if null
       } catch (err) {
         setError('Failed to fetch data.');
         console.error('Error fetching data:', err);
@@ -347,6 +369,12 @@ const Documents = () => {
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
+    setNewDocument({
+      employeeId: '',
+      employeeName: '',
+      title: '',
+      file: null,
+    });
     setError('');
   };
 
@@ -361,67 +389,73 @@ const Documents = () => {
   };
 
   const handleSubmitDocument = async () => {
-  const requiredFields = ['employeeId', 'title', 'file'];
-  const emptyFields = requiredFields.filter((field) => !newDocument[field]);
+    const requiredFields = ['employeeId', 'title', 'file'];
+    const emptyFields = requiredFields.filter((field) => !newDocument[field]);
 
-  if (emptyFields.length > 0) {
-    setError(`Please fill in all required fields: ${emptyFields.join(', ')}`);
-    return;
-  }
+    if (emptyFields.length > 0) {
+      setError(`Please fill in all required fields: ${emptyFields.join(', ')}`);
+      return;
+    }
 
-  try {
-    const selectedEmployee = employees.find((emp) => emp.id === newDocument.employeeId);
-    if (!selectedEmployee) throw new Error('Employee not found');
+    try {
+      const selectedEmployee = employees.find((emp) => emp.id === newDocument.employeeId);
+      if (!selectedEmployee) throw new Error('Employee not found');
 
-    // Ensure unique filenames
-    const fileName = `${Date.now()}-${newDocument.file.name}`;
-    const filePath = `documents/${fileName}`;
+      const fileName = `${Date.now()}-${newDocument.file.name.replace(/ /g, '-')}`;
+      const filePath = `documents/${fileName}`;
 
-    // Upload file to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('biogex-files') // Ensure this is your correct bucket name
-      .upload(filePath, newDocument.file);
+      // Remove existing file (optional, to ensure fresh upload)
+      const { error: deleteError } = await supabase.storage
+        .from('biogex-files')
+        .remove([filePath]);
+      if (deleteError) console.warn('Delete Error (might not exist):', deleteError);
 
-    if (uploadError) throw uploadError;
+      // Upload file
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('biogex-files')
+        .upload(filePath, newDocument.file);
+      if (uploadError) {
+        console.error('Upload Error:', uploadError);
+        throw uploadError;
+      }
+      console.log('Upload Data:', uploadData);
 
-    // Retrieve public URL correctly
-    const { data } = supabase.storage
-      .from('biogex-files') // Use the correct bucket name
-      .getPublicUrl(filePath);
+      // Generate signed URL
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from('biogex-files')
+        .createSignedUrl(filePath, 3600); // 1-hour expiry
+      if (signedUrlError) {
+        console.error('Signed URL Error:', signedUrlError);
+        throw signedUrlError;
+      }
+      console.log('Signed URL:', signedUrlData.signedUrl);
 
-    if (!data) throw new Error('Failed to retrieve file URL');
+      // Save metadata (without signed_url in the database)
+      const documentData = {
+        employee_id: newDocument.employeeId,
+        employee_name: selectedEmployee.full_name,
+        title: newDocument.title,
+        file_url: fileName, // Store only the filename
+      };
 
-    const fileUrl = data.publicUrl;
+      const { error: insertError } = await supabase.from('documents').insert([documentData]);
+      if (insertError) throw insertError;
 
-    // Save document metadata to Supabase
-    const documentData = {
-      employee_id: newDocument.employeeId,
-      employee_name: selectedEmployee.full_name,
-      title: newDocument.title,
-      file_url: fileUrl, // Store only the correct URL
-    };
-
-    const { error: insertError } = await supabase
-      .from('documents')
-      .insert([documentData]);
-
-    if (insertError) throw insertError;
-
-    setDocuments((prev) => [...prev, documentData]);
-    setNewDocument({
-      employeeId: '',
-      employeeName: '',
-      title: '',
-      file: null,
-    });
-    setError('');
-    handleCloseModal();
-  } catch (err) {
-    setError('Failed to upload document.');
-    console.error('Error uploading document:', err);
-  }
-};
-
+      // Add the new document with its signed URL to the state
+      setDocuments((prev) => [...prev, { ...documentData, signed_file_url: signedUrlData.signedUrl }]);
+      setNewDocument({
+        employeeId: '',
+        employeeName: '',
+        title: '',
+        file: null,
+      });
+      setError('');
+      handleCloseModal();
+    } catch (err) {
+      setError('Failed to upload document: ' + err.message);
+      console.error('Error uploading document:', err);
+    }
+  };
 
   if (loading) return (
     <>
@@ -431,7 +465,14 @@ const Documents = () => {
       </div>
     </>
   );
-  if (error) return <p>{error}</p>;
+  if (error) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="documents-container">
+        <p className="form-error">{error}</p>
+      </div>
+    </>
+  );
 
   return (
     <>
@@ -463,9 +504,17 @@ const Documents = () => {
                       <td>{doc.employee_name}</td>
                       <td>{doc.title}</td>
                       <td>
-                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                          View File
-                        </a>
+                        {doc.signed_file_url ? (
+                          <a
+                            href={doc.signed_file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View File
+                          </a>
+                        ) : (
+                          <span>File not available</span>
+                        )}
                       </td>
                       <td>
                         <Link
