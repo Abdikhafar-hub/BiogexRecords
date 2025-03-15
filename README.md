@@ -1,6 +1,6 @@
 # Biogex Pharma
 
-This repository contains the source code for the Biogex Pharma web application, built usi
+This repository contains the source code for the Biogex Pharma web application, built us
 
 
 ## Project Structure
