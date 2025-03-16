@@ -147,52 +147,50 @@ const EmployeeDetails = () => {
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [imageError, setImageError] = useState(false);
   const [profilePic, setProfilePic] = useState(null);
-
 
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
         setLoading(true);
-        
-        // Fetch employee data
+
         const { data, error } = await supabase
           .from('employees')
           .select('*')
           .eq('id', id)
           .single();
-  
+
         if (error) throw error;
         if (!data) throw new Error("No employee found");
-  
+
         console.log("Fetched Employee Data:", data);
-  
+
         let imageUrl = null;
-  
-        // Ensure profile_pic_url exists and is only the filename
-        if (data.profile_pic_url && !data.profile_pic_url.startsWith("http")) {
-          const filePath = `profile-pics/${data.profile_pic_url}`;
-  
-          console.log("Fetching signed URL for:", filePath);
-  
-          // Generate signed URL
+
+        if (data.profile_pic_url) {
+          // Extract the file path correctly, removing the full public URL prefix
+          const baseUrl = 'https://thgowurxpgxvrsubzzgl.supabase.co/storage/v1/object/public/biogex-files/';
+          const filePath = data.profile_pic_url.replace(baseUrl, '');
+          console.log("Extracted file path:", filePath);
+
           const { data: signedUrlData, error: signedUrlError } = await supabase
             .storage
-            .from('biogex-files') // Ensure correct bucket name
-            .createSignedUrl(filePath, 3600); // 1-hour valid link
-  
+            .from('biogex-files')
+            .createSignedUrl(filePath, 3600);
+
           if (signedUrlError) {
             console.error("Error generating signed URL:", signedUrlError);
-          } else {
-            imageUrl = signedUrlData.signedUrl;
+            throw new Error("Failed to generate signed URL: " + signedUrlError.message);
           }
+
+          console.log("Signed URL:", signedUrlData?.signedUrl);
+          imageUrl = signedUrlData?.signedUrl;
         } else {
-          console.warn("No valid profile picture found.");
+          console.warn("No profile picture found, using default.");
         }
-  
+
         console.log("Final Profile Pic URL:", imageUrl);
-        setProfilePic(imageUrl || "/default-profile.png"); // Use fallback
+        setProfilePic(imageUrl || "https://placehold.co/150"); // Updated fallback
         setEmployee(data);
       } catch (err) {
         setError("Failed to fetch employee details: " + err.message);
@@ -201,12 +199,9 @@ const EmployeeDetails = () => {
         setLoading(false);
       }
     };
-  
+
     fetchEmployee();
   }, [id]);
-  
-  
-  
 
   const handleDelete = async () => {
     const confirmDelete = window.confirm('Are you sure you want to delete this employee?');
@@ -243,30 +238,19 @@ const EmployeeDetails = () => {
             <div className="employee-details-section">
               <div className="row">
                 <div className="col-md-4 text-center">
-                  {!imageError && employee.profile_pic_url ? (
-                    <img
+                  <img
                     src={profilePic}
                     alt="Profile"
                     className="employee-details-image"
                     onError={(e) => {
                       console.error("Image failed to load:", profilePic);
-                      e.target.src = "/default-profile.png"; // Use fallback image
+                      if (e.target.src !== "/default-profile.png" && e.target.src !== "https://placehold.co/150") {
+                        e.target.src = "https://placehold.co/150"; // Updated fallback
+                      } else {
+                        e.target.style.display = 'none'; // Hide if fallback fails
+                      }
                     }}
                   />
-                  
-                  
-                  
-                  ) : (
-                    <img
-                      src="/default-profile.png"
-                      alt="Default Profile"
-                      className="employee-details-image"
-                      onError={(e) => {
-                        console.log('Fallback image failed to load, URL:', e.target.src);
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  )}
                 </div>
                 <div className="col-md-8">
                   <h3 className="employee-details-section-title">Personal Information</h3>

@@ -374,6 +374,7 @@ const EmployeeForm = () => {
     setError('');
 
     try {
+      // Step 1: Check if employee code already exists
       const { data: existingEmployee, error: checkError } = await supabase
         .from('employees')
         .select('employee_code')
@@ -389,6 +390,7 @@ const EmployeeForm = () => {
         return;
       }
 
+      // Step 2: Upload profile picture (if provided)
       let profilePicUrl = null;
       if (files.profilePic) {
         const file = files.profilePic;
@@ -407,11 +409,13 @@ const EmployeeForm = () => {
         profilePicUrl = urlData.publicUrl;
       }
 
+      // Step 3: Get authenticated user
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) {
         throw new Error('Failed to get authenticated user: ' + (userError?.message || 'User not found'));
       }
 
+      // Step 4: Insert employee data into employees table
       const employeeData = {
         user_id: userData.user.id,
         full_name: formData.fullName,
@@ -467,6 +471,7 @@ const EmployeeForm = () => {
 
       const newEmployeeId = employeeInsertData[0].id;
 
+      // Step 5: Insert remuneration data
       const remunerationData = {
         employee_id: newEmployeeId,
         employee_name: formData.fullName,
@@ -487,6 +492,50 @@ const EmployeeForm = () => {
         throw new Error('Failed to create remuneration record: ' + remunerationError.message);
       }
 
+      // Step 6: Upload additional documents and insert into documents table
+      const documentFields = [
+        { field: 'idPassport', title: 'Copy of ID/Passport' },
+        { field: 'certificates', title: 'Certificates' },
+        { field: 'otherDocs', title: 'Other Documents' },
+      ];
+
+      for (const doc of documentFields) {
+        const file = files[doc.field];
+        if (file) {
+          const timestamp = Date.now();
+          const sanitizedFileName = file.name.replace(/ /g, '-');
+          const filePath = `employee/${newEmployeeId}/${doc.field}/${timestamp}-${sanitizedFileName}`;
+
+          // Upload file to storage
+          const { error: uploadError } = await supabase.storage
+            .from('biogex-files')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false,
+            });
+          if (uploadError) {
+            throw new Error(`Failed to upload ${doc.title}: ${uploadError.message}`);
+          }
+
+          // Insert document metadata into documents table
+          const documentData = {
+            title: doc.title,
+            file_url: filePath,
+            entity_type: 'employee',
+            entity_id: newEmployeeId,
+            entity_name: formData.fullName,
+          };
+
+          const { error: docInsertError } = await supabase
+            .from('documents')
+            .insert([documentData]);
+          if (docInsertError) {
+            throw new Error(`Failed to insert ${doc.title} metadata: ${docInsertError.message}`);
+          }
+        }
+      }
+
+      // Step 7: Reset form and navigate
       setFormData({
         fullName: '',
         dateOfBirth: '',
