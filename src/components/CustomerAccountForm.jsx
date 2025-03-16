@@ -274,33 +274,20 @@ const customStyles = `
     }
 
     .form-footer {
-      padding: 0.75rem;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;
-    }
-
-    .form-button {
-      font-size: 0.9rem;
-      padding: 0.5rem 1rem;
-    }
-
-    /* Reduce spacing for form elements */
-    .mb-3 {
-      margin-bottom: 0.75rem !important;
-    }
-
-    /* Stack buttons vertically */
-    .form-footer {
       flex-direction: column;
       gap: 0.5rem;
     }
   }
 `;
 
-// The React component remains largely unchanged, only the CSS is adjusted
 const CustomerAccountForm = () => {
   const navigate = useNavigate();
-  const [files, setFiles] = useState({});
+  const [files, setFiles] = useState({
+    kraPinCertificate: null,
+    vatCertificate: null,
+    businessRegCertificate: null,
+    idPassport: null,
+  });
   const [formData, setFormData] = useState({
     fullName: '',
     businessName: '',
@@ -427,14 +414,47 @@ const CustomerAccountForm = () => {
         created_at: new Date().toISOString(),
       };
 
-      const { data, error: insertError } = await supabase
+      const { data: customer, error: customerError } = await supabase
         .from('customers')
         .insert([customerData])
-        .select();
+        .select()
+        .single();
 
-      if (insertError) {
-        throw new Error('Failed to register customer: ' + insertError.message);
-      }
+      if (customerError) throw customerError;
+
+      // Upload documents
+      const documentUploads = Object.entries(files).map(async ([fieldName, file]) => {
+        if (file) {
+          const fileName = `customer/${customer.id}/${fieldName}/${Date.now()}-${file.name.replace(/ /g, '-')}`;
+          console.log('Uploading file to path:', fileName);
+          const { error: uploadError } = await supabase.storage
+            .from('biogex-files')
+            .upload(fileName, file);
+
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            throw uploadError;
+          }
+
+          const documentData = {
+            title: `${fieldName} - ${file.name}`,
+            file_url: fileName, // Store the file path
+            entity_type: 'customer',
+            entity_id: customer.id,
+            entity_name: customer.full_name,
+          };
+
+          const { error: docError } = await supabase.from('documents').insert([documentData]);
+          if (docError) {
+            console.error('Document insert error:', docError);
+            throw docError;
+          }
+
+          console.log('Document inserted successfully:', documentData);
+        }
+      });
+
+      await Promise.all(documentUploads);
 
       setFormData({
         fullName: '',
@@ -475,14 +495,18 @@ const CustomerAccountForm = () => {
         declarationSignature: '',
         declarationDate: '',
       });
-      setFiles({});
-      setSuccess('Customer registered successfully!');
-
+      setFiles({
+        kraPinCertificate: null,
+        vatCertificate: null,
+        businessRegCertificate: null,
+        idPassport: null,
+      });
+      setSuccess('Customer registered successfully with documents!');
       setTimeout(() => {
         navigate('/hr-management/customer-list');
       }, 1500);
     } catch (err) {
-      setError(err.message);
+      setError('Error submitting form: ' + err.message);
       console.error(err);
     }
   };

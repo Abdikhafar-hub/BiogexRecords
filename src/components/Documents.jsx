@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, Table, Button, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
@@ -24,7 +25,7 @@ const customStyles = `
     width: 100%;
     max-width: 95%;
     margin: 0 auto;
-    overflow-x: auto; /* Allow horizontal scrolling for table */
+    overflow-x: auto;
   }
 
   .documents-card:hover {
@@ -75,7 +76,7 @@ const customStyles = `
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    min-width: 600px; /* Ensure table scrolls horizontally on small screens */
+    min-width: 600px;
   }
 
   .documents-table th {
@@ -182,17 +183,17 @@ const customStyles = `
   }
 
   .loading-container {
-    min-height: 100vh; /* Match container height */
+    min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center; /* Center spinner vertically and horizontally */
-    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%); /* Match background */
+    align-items: center;
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
   }
 
   .spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid #047857; /* Green color matching theme */
+    border: 4px solid #047857;
     border-top: 4px solid transparent;
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -228,9 +229,9 @@ const customStyles = `
 
     .documents-body {
       padding: 1rem;
-      max-height: calc(100vh - 150px); /* Adjust for header and footer */
+      max-height: calc(100vh - 150px);
       overflow-y: auto;
-      -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+      -webkit-overflow-scrolling: touch;
     }
 
     .documents-upload-btn {
@@ -294,7 +295,7 @@ const customStyles = `
     }
 
     .spinner {
-      width: 30px; /* Smaller on mobile */
+      width: 30px;
       height: 30px;
       border: 3px solid #047857;
       border-top: 3px solid transparent;
@@ -303,19 +304,79 @@ const customStyles = `
 `;
 
 const Documents = () => {
+  const location = useLocation();
   const [employees, setEmployees] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newDocument, setNewDocument] = useState({
-    employeeId: '',
-    employeeName: '',
+    entityType: 'employee',
+    entityId: '',
+    entityName: '',
     title: '',
     file: null,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      const { data: documentsData, error: documentsError } = await supabase
+        .from('documents')
+        .select('*');
+      if (documentsError) throw documentsError;
+
+      console.log('Fetched documents:', documentsData);
+
+      const updatedDocuments = await Promise.all(
+        documentsData.map(async (doc) => {
+          let signedFileUrl = null;
+          if (doc.file_url && !doc.file_url.includes('token')) {
+            const filePath = doc.file_url;
+            console.log('Generating signed URL for path:', filePath);
+            const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+              .from('biogex-files')
+              .createSignedUrl(filePath, 3600);
+            if (signedUrlError) {
+              console.error('Error generating signed URL:', signedUrlError);
+              return { ...doc, signed_file_url: null };
+            }
+            signedFileUrl = signedUrlData.signedUrl;
+          }
+          return { ...doc, signed_file_url: signedFileUrl };
+        })
+      );
+
+      console.log('Updated documents with signed URLs:', updatedDocuments);
+      // Deduplicate documents by id
+      const uniqueDocuments = Array.from(
+        new Map(updatedDocuments.map((doc) => [doc.id, doc])).values()
+      );
+      console.log('Deduplicated documents:', uniqueDocuments);
+      setDocuments(uniqueDocuments || []);
+    } catch (err) {
+      setError('Failed to fetch documents: ' + err.message);
+      console.error('Error fetching documents:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    console.log('Documents.jsx mounted or route changed:', location.pathname);
+
+    // Check authentication status
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Supabase session:', session);
+      if (!session) {
+        console.error('No active session. User is not authenticated.');
+        setError('Please log in to view documents.');
+      }
+    };
+    checkAuth();
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -323,40 +384,23 @@ const Documents = () => {
         // Fetch employees
         const { data: employeesData, error: employeesError } = await supabase
           .from('employees')
-          .select('*');
+          .select('id, full_name');
         if (employeesError) throw employeesError;
-        setEmployees(employeesData || []); // Ensure array even if null
+        console.log('Fetched employees:', employeesData);
+        setEmployees(employeesData || []);
 
-        // Fetch documents and generate signed URLs
-        const { data: documentsData, error: documentsError } = await supabase
-          .from('documents')
-          .select('*');
-        if (documentsError) throw documentsError;
+        // Fetch customers
+        const { data: customersData, error: customersError } = await supabase
+          .from('customers')
+          .select('id, full_name');
+        if (customersError) throw customersError;
+        console.log('Fetched customers:', customersData);
+        setCustomers(customersData || []);
 
-        // Generate signed URLs for each document
-        const updatedDocuments = await Promise.all(
-          documentsData.map(async (doc) => {
-            let signedFileUrl = null;
-            // Check if file_url is a filename (not a full URL with a token)
-            if (doc.file_url && !doc.file_url.includes("token")) {
-              const filePath = `documents/${doc.file_url}`;
-              const { data: signedUrlData, error: signedUrlError } = await supabase
-                .storage
-                .from('biogex-files')
-                .createSignedUrl(filePath, 3600); // 1-hour expiry
-              if (signedUrlError) {
-                console.error('Error generating signed URL for document:', signedUrlError);
-              } else {
-                signedFileUrl = signedUrlData.signedUrl;
-              }
-            }
-            return { ...doc, signed_file_url: signedFileUrl };
-          })
-        );
-
-        setDocuments(updatedDocuments || []); // Ensure array even if null
+        // Fetch documents
+        await fetchDocuments();
       } catch (err) {
-        setError('Failed to fetch data.');
+        setError('Failed to fetch data: ' + err.message);
         console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
@@ -364,14 +408,59 @@ const Documents = () => {
     };
 
     fetchData();
-  }, []);
+
+    // Set up real-time subscription for new document inserts
+    const subscription = supabase
+      .channel('public:documents')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'documents' }, async (payload) => {
+        console.log('Real-time subscription triggered. New document inserted:', payload.new);
+        const newDoc = payload.new;
+        let signedFileUrl = null;
+        if (newDoc.file_url && !newDoc.file_url.includes('token')) {
+          const filePath = newDoc.file_url;
+          console.log('Generating signed URL for new document:', filePath);
+          const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+            .from('biogex-files')
+            .createSignedUrl(filePath, 3600);
+          if (signedUrlError) {
+            console.error('Error generating signed URL for new document:', signedUrlError);
+            return;
+          }
+          signedFileUrl = signedUrlData.signedUrl;
+        }
+        const updatedDoc = { ...newDoc, signed_file_url: signedFileUrl };
+        console.log('Adding new document to state:', updatedDoc);
+        setDocuments((prev) => {
+          // Deduplicate by id
+          const newDocs = Array.from(
+            new Map([...prev, updatedDoc].map((doc) => [doc.id, doc])).values()
+          );
+          console.log('Updated documents state:', newDocs);
+          return newDocs;
+        });
+      })
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
+
+    // Periodic fetch every 30 seconds
+    const interval = setInterval(fetchDocuments, 30000);
+
+    // Cleanup subscription and interval on unmount
+    return () => {
+      console.log('Cleaning up subscription and interval');
+      supabase.removeChannel(subscription);
+      clearInterval(interval);
+    };
+  }, [location.pathname]);
 
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
     setNewDocument({
-      employeeId: '',
-      employeeName: '',
+      entityType: 'employee',
+      entityId: '',
+      entityName: '',
       title: '',
       file: null,
     });
@@ -389,73 +478,91 @@ const Documents = () => {
   };
 
   const handleSubmitDocument = async () => {
-    const requiredFields = ['employeeId', 'title', 'file'];
+    const requiredFields = ['entityType', 'entityId', 'title', 'file'];
     const emptyFields = requiredFields.filter((field) => !newDocument[field]);
-
+  
     if (emptyFields.length > 0) {
       setError(`Please fill in all required fields: ${emptyFields.join(', ')}`);
       return;
     }
-
+  
     try {
-      const selectedEmployee = employees.find((emp) => emp.id === newDocument.employeeId);
-      if (!selectedEmployee) throw new Error('Employee not found');
-
-      const fileName = `${Date.now()}-${newDocument.file.name.replace(/ /g, '-')}`;
-      const filePath = `documents/${fileName}`;
-
-      // Remove existing file (optional, to ensure fresh upload)
+      // Step 1: Validate entity selection
+      let selectedEntity;
+      if (newDocument.entityType === 'employee') {
+        selectedEntity = employees.find((emp) => emp.id === newDocument.entityId);
+        if (!selectedEntity) throw new Error('Employee not found');
+        newDocument.entityName = selectedEntity.full_name;
+      } else if (newDocument.entityType === 'customer') {
+        selectedEntity = customers.find((cust) => cust.id === newDocument.entityId);
+        if (!selectedEntity) throw new Error('Customer not found');
+        newDocument.entityName = selectedEntity.full_name;
+      }
+      console.log('Selected entity:', selectedEntity);
+  
+      // Step 2: Construct file path
+      const timestamp = Date.now();
+      const sanitizedFileName = newDocument.file.name.replace(/ /g, '-');
+      const fileName = `${newDocument.entityType}/${newDocument.entityId}/${timestamp}-${sanitizedFileName}`;
+      const filePath = fileName;
+      console.log('Constructed file path:', filePath);
+  
+      // Step 3: Remove existing file (optional, in case of overwrite)
+      console.log('Attempting to remove existing file at path:', filePath);
       const { error: deleteError } = await supabase.storage
         .from('biogex-files')
         .remove([filePath]);
-      if (deleteError) console.warn('Delete Error (might not exist):', deleteError);
-
-      // Upload file
+      if (deleteError) {
+        console.warn('Delete Error (might not exist):', deleteError);
+      } else {
+        console.log('Existing file removed successfully (if it existed)');
+      }
+  
+      // Step 4: Upload file to storage
+      console.log('Uploading file to storage:', filePath);
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('biogex-files')
-        .upload(filePath, newDocument.file);
-      if (uploadError) {
-        console.error('Upload Error:', uploadError);
-        throw uploadError;
-      }
-      console.log('Upload Data:', uploadData);
-
-      // Generate signed URL
+        .upload(filePath, newDocument.file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+      if (uploadError) throw new Error(`File upload failed: ${uploadError.message}`);
+      console.log('File uploaded successfully:', uploadData);
+  
+      // Step 5: Generate signed URL
+      console.log('Generating signed URL for path:', filePath);
       const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('biogex-files')
-        .createSignedUrl(filePath, 3600); // 1-hour expiry
-      if (signedUrlError) {
-        console.error('Signed URL Error:', signedUrlError);
-        throw signedUrlError;
-      }
-      console.log('Signed URL:', signedUrlData.signedUrl);
-
-      // Save metadata (without signed_url in the database)
+        .createSignedUrl(filePath, 3600);
+      if (signedUrlError) throw new Error(`Signed URL generation failed: ${signedUrlError.message}`);
+      console.log('Signed URL generated:', signedUrlData.signedUrl);
+  
+      // Step 6: Save metadata to documents table
       const documentData = {
-        employee_id: newDocument.employeeId,
-        employee_name: selectedEmployee.full_name,
         title: newDocument.title,
-        file_url: fileName, // Store only the filename
+        file_url: filePath,
+        entity_type: newDocument.entityType,
+        entity_id: newDocument.entityId,
+        entity_name: newDocument.entityName,
       };
-
-      const { error: insertError } = await supabase.from('documents').insert([documentData]);
-      if (insertError) throw insertError;
-
-      // Add the new document with its signed URL to the state
-      setDocuments((prev) => [...prev, { ...documentData, signed_file_url: signedUrlData.signedUrl }]);
-      setNewDocument({
-        employeeId: '',
-        employeeName: '',
-        title: '',
-        file: null,
-      });
-      setError('');
+      console.log('Inserting document metadata:', documentData);
+      const { data: insertData, error: insertError } = await supabase
+        .from('documents')
+        .insert([documentData])
+        .select(); // Return the inserted row
+      if (insertError) throw new Error(`Document insertion failed: ${insertError.message}`);
+      console.log('Document inserted successfully:', insertData);
+  
+      // Step 7: Close modal and reset form
       handleCloseModal();
+      setError('');
     } catch (err) {
       setError('Failed to upload document: ' + err.message);
       console.error('Error uploading document:', err);
     }
   };
+  // Debug render
+  console.log('Rendering Documents.jsx with documents:', documents);
 
   if (loading) return (
     <>
@@ -486,13 +593,21 @@ const Documents = () => {
             <Button className="documents-upload-btn" onClick={handleShowModal}>
               Upload Document
             </Button>
+            <Button
+              className="documents-upload-btn"
+              onClick={fetchDocuments}
+              style={{ marginLeft: '10px' }}
+            >
+              Refresh Documents
+            </Button>
             {documents.length === 0 ? (
               <p className="text-center text-muted">No documents found.</p>
             ) : (
               <Table striped bordered hover className="documents-table">
                 <thead>
                   <tr>
-                    <th>Employee Name</th>
+                    <th>Entity Type</th>
+                    <th>Entity Name</th>
                     <th>Document Title</th>
                     <th>File</th>
                     <th>Actions</th>
@@ -501,7 +616,8 @@ const Documents = () => {
                 <tbody>
                   {documents.map((doc) => (
                     <tr key={doc.id}>
-                      <td>{doc.employee_name}</td>
+                      <td>{doc.entity_type}</td>
+                      <td>{doc.entity_name}</td>
                       <td>{doc.title}</td>
                       <td>
                         {doc.signed_file_url ? (
@@ -518,10 +634,14 @@ const Documents = () => {
                       </td>
                       <td>
                         <Link
-                          to="/hr-management/employee-list"
+                          to={
+                            doc.entity_type === 'employee'
+                              ? '/hr-management/employee-list'
+                              : '/hr-management/customer-list'
+                          }
                           className="btn btn-sm"
                         >
-                          View Employee
+                          View {doc.entity_type}
                         </Link>
                       </td>
                     </tr>
@@ -540,25 +660,40 @@ const Documents = () => {
             {error && <div className="form-error">{error}</div>}
             <Form>
               <Form.Group className="mb-3">
-                <Form.Label>Employee Name</Form.Label>
+                <Form.Label>Entity Type</Form.Label>
+                <Form.Select
+                  name="entityType"
+                  value={newDocument.entityType}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="employee">Employee</option>
+                  <option value="customer">Customer</option>
+                </Form.Select>
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Entity ID</Form.Label>
                 <Form.Control
                   as="select"
-                  name="employeeId"
-                  value={newDocument.employeeId}
+                  name="entityId"
+                  value={newDocument.entityId}
                   onChange={(e) => {
-                    const selectedEmployee = employees.find((emp) => emp.id === e.target.value);
+                    const selectedEntity =
+                      newDocument.entityType === 'employee'
+                        ? employees.find((emp) => emp.id === e.target.value)
+                        : customers.find((cust) => cust.id === e.target.value);
                     setNewDocument((prev) => ({
                       ...prev,
-                      employeeId: e.target.value,
-                      employeeName: selectedEmployee ? selectedEmployee.full_name : '',
+                      entityId: e.target.value,
+                      entityName: selectedEntity ? selectedEntity.full_name : '',
                     }));
                   }}
                   required
                 >
-                  <option value="">Select Employee</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.full_name}
+                  <option value="">Select {newDocument.entityType}</option>
+                  {(newDocument.entityType === 'employee' ? employees : customers).map((entity) => (
+                    <option key={entity.id} value={entity.id}>
+                      {entity.full_name}
                     </option>
                   ))}
                 </Form.Control>
