@@ -3,7 +3,7 @@ import { Card, ListGroup, Button, Form, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS for styling (reusing from MySary)
+// Custom CSS (unchanged)
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -136,16 +136,20 @@ const Messenger = () => {
   const [messages, setMessages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newMessage, setNewMessage] = useState({
-    senderId: '',
-    senderName: '',
     receiverId: '',
     receiverName: '',
-    email: '', // Added email field
+    email: '',
     message: '',
     date: new Date().toISOString().split('T')[0],
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+
+  // Default sender details
+  const defaultSender = {
+    email: 'info@biogexpharma.com',
+    name: 'Biogex Pharma',
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -188,47 +192,51 @@ const Messenger = () => {
   };
 
   const handleSendMessage = async () => {
-    const requiredFields = ['senderId', 'receiverId', 'email', 'message'];
+    const requiredFields = ['receiverId', 'email', 'message'];
     const emptyFields = requiredFields.filter((field) => !newMessage[field]);
-
+  
     if (emptyFields.length > 0) {
       setError(`Please fill in all required fields: ${emptyFields.join(', ')}`);
       return;
     }
-
+  
+    // Validate that receiverId is a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(newMessage.receiverId)) {
+      setError('Invalid recipient ID. Please select a valid employee.');
+      return;
+    }
+  
     try {
-      const sender = employees.find(emp => emp.id === newMessage.senderId);
-      const receiver = employees.find(emp => emp.id === newMessage.receiverId);
-      if (!sender || !receiver) throw new Error('Sender or receiver not found');
-
+      const receiver = employees.find((emp) => emp.id === newMessage.receiverId);
+      if (!receiver) throw new Error('Receiver not found');
+  
       const messageData = {
-        sender_id: newMessage.senderId,
-        sender_name: sender.full_name,
+        sender_id: 'biogex_default',
+        sender_name: defaultSender.name,
+        sender_email: defaultSender.email,
         receiver_id: newMessage.receiverId,
         receiver_name: receiver.full_name,
-        recipient_email: newMessage.email, // Save the email
+        recipient_email: newMessage.email,
         message: newMessage.message,
       };
-
+  
       const { data, error: insertError } = await supabase
         .from('messages')
         .insert([messageData])
         .select()
         .single();
       if (insertError) throw insertError;
-
-      // Simulate sending an email by logging to the console
+  
       console.log(`Simulating email send to ${newMessage.email}:`, {
-        from: sender.full_name,
+        from: defaultSender.name,
         to: receiver.full_name,
         message: newMessage.message,
       });
       alert(`Message saved and email simulated to ${newMessage.email}! Check the console for details.`);
-
+  
       setMessages((prev) => [...prev, data]);
       setNewMessage({
-        senderId: '',
-        senderName: '',
         receiverId: '',
         receiverName: '',
         email: '',
@@ -238,7 +246,7 @@ const Messenger = () => {
       setError('');
       handleCloseModal();
     } catch (err) {
-      setError('Failed to send message.');
+      setError('Failed to send message: ' + err.message);
       console.error('Error sending message:', err);
     }
   };
@@ -255,7 +263,11 @@ const Messenger = () => {
             <h2 className="mysary-header-title">Messenger</h2>
           </Card.Header>
           <Card.Body className="mysary-body">
-            <Button variant="success" className="mysary-button primary mb-4" onClick={handleShowModal}>
+            <Button
+              variant="success"
+              className="mysary-button primary mb-4"
+              onClick={handleShowModal}
+            >
               Send Message
             </Button>
             {messages.length === 0 ? (
@@ -264,7 +276,7 @@ const Messenger = () => {
               <ListGroup>
                 {messages.map((msg) => (
                   <ListGroup.Item key={msg.id} className="mysary-list-group-item">
-                    <strong>From:</strong> {msg.sender_name} <br />
+                    <strong>From:</strong> {msg.sender_name} ({msg.sender_email}) <br />
                     <strong>To:</strong> {msg.receiver_name} <br />
                     <strong>Email:</strong> {msg.recipient_email} <br />
                     <strong>Date:</strong> {new Date(msg.created_at).toLocaleDateString()} <br />
@@ -292,26 +304,10 @@ const Messenger = () => {
               <Form.Group className="mb-3">
                 <Form.Label>Sender</Form.Label>
                 <Form.Control
-                  as="select"
-                  name="senderId"
-                  value={newMessage.senderId}
-                  onChange={(e) => {
-                    const selectedEmployee = employees.find(emp => emp.id === e.target.value);
-                    setNewMessage((prev) => ({
-                      ...prev,
-                      senderId: e.target.value,
-                      senderName: selectedEmployee ? selectedEmployee.full_name : '',
-                    }));
-                  }}
-                  required
-                >
-                  <option value="">Select Sender</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.full_name}
-                    </option>
-                  ))}
-                </Form.Control>
+                  type="text"
+                  value={`${defaultSender.name} (${defaultSender.email})`}
+                  readOnly
+                />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Recipient</Form.Label>
@@ -320,12 +316,12 @@ const Messenger = () => {
                   name="receiverId"
                   value={newMessage.receiverId}
                   onChange={(e) => {
-                    const selectedEmployee = employees.find(emp => emp.id === e.target.value);
+                    const selectedEmployee = employees.find((emp) => emp.id === e.target.value);
                     setNewMessage((prev) => ({
                       ...prev,
                       receiverId: e.target.value,
                       receiverName: selectedEmployee ? selectedEmployee.full_name : '',
-                      email: selectedEmployee ? selectedEmployee.email : '', // Auto-fill email
+                      email: selectedEmployee ? selectedEmployee.email : '',
                     }));
                   }}
                   required
@@ -363,10 +359,18 @@ const Messenger = () => {
             </Form>
           </Modal.Body>
           <Modal.Footer className="mysary-modal-footer">
-            <Button variant="secondary" className="mysary-button secondary" onClick={handleCloseModal}>
+            <Button
+              variant="secondary"
+              className="mysary-button secondary"
+              onClick={handleCloseModal}
+            >
               Close
             </Button>
-            <Button variant="success" className="mysary-button primary" onClick={handleSendMessage}>
+            <Button
+              variant="success"
+              className="mysary-button primary"
+              onClick={handleSendMessage}
+            >
               Send Message
             </Button>
           </Modal.Footer>

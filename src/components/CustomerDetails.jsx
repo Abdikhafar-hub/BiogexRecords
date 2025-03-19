@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS for styling
+// Custom CSS for styling, including the spinner
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -126,24 +126,47 @@ const customStyles = `
     background-color: #b02a37;
   }
 
-  .loading-text,
+  .loading-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857;
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   .error-text {
     font-family: 'Poppins', sans-serif;
     font-size: 1.2rem;
     text-align: center;
     padding: 2rem;
-  }
-
-  .loading-text {
-    color: #4b5563;
-  }
-
-  .error-text {
     color: #dc3545;
     background: #f8d7da;
     border-left: 4px solid #dc3545;
     margin: 1rem;
     border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
+    }
   }
 `;
 
@@ -181,7 +204,6 @@ const CustomerDetails = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    // Show confirmation prompt
     const confirmDelete = window.confirm('Are you sure you want to delete this customer?');
     if (!confirmDelete) return;
 
@@ -195,7 +217,6 @@ const CustomerDetails = () => {
         throw new Error('Failed to delete customer: ' + error.message);
       }
 
-      // Navigate back to the customer list after deletion
       navigate('/hr-management/customer-list');
     } catch (err) {
       console.error(err.message);
@@ -203,7 +224,14 @@ const CustomerDetails = () => {
     }
   };
 
-  if (loading) return <div className="loading-text">Loading...</div>;
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
   if (error) return <div className="error-text">{error}</div>;
   if (!customer) return <div className="error-text">Customer not found.</div>;
 

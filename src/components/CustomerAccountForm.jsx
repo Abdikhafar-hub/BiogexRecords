@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { Form, Button, Row, Col } from 'react-bootstrap';
 import { supabase } from '../supabaseClient';
 
-// Custom CSS with Mobile Responsiveness
+// Custom CSS with Mobile Responsiveness and Spinner
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -80,17 +80,44 @@ const customStyles = `
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
-  .form-success {
+  .form-success, .form-submitting {
     font-family: 'Poppins', sans-serif;
     font-size: 0.9rem;
     font-weight: 500;
-    color: #28a745;
-    background: #d4edda;
-    border-left: 4px solid #28a745;
     padding: 0.75rem 1.5rem;
     margin: 1rem 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .form-success {
+    color: #28a745;
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+  }
+
+  .form-submitting {
+    color: #047857;
+    background: #e6f0fa;
+    border-left: 4px solid #047857;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #047857;
+    border-top: 3px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
   .form-body {
@@ -177,7 +204,13 @@ const customStyles = `
     color: #047857;
   }
 
-  .form-button.submit:hover {
+  .form-button.submit:disabled {
+    background: #d1d5db;
+    color: #6b7280;
+    cursor: not-allowed;
+  }
+
+  .form-button.submit:hover:not(:disabled) {
     background: #f8fafc;
     box-shadow: 0 6px 16px rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
@@ -195,7 +228,6 @@ const customStyles = `
     transform: translateY(-2px);
   }
 
-  /* Mobile Responsiveness */
   @media (max-width: 767px) {
     .form-container {
       padding: 1rem 0.5rem;
@@ -230,7 +262,7 @@ const customStyles = `
       border-radius: 6px;
     }
 
-    .form-error, .form-success {
+    .form-error, .form-success, .form-submitting {
       font-size: 0.8rem;
       padding: 0.5rem 1rem;
       margin: 0.5rem 1rem;
@@ -276,6 +308,13 @@ const customStyles = `
     .form-footer {
       flex-direction: column;
       gap: 0.5rem;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #047857;
+      border-top: 2px solid transparent;
     }
   }
 `;
@@ -329,6 +368,7 @@ const CustomerAccountForm = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -371,6 +411,7 @@ const CustomerAccountForm = () => {
 
     setError('');
     setSuccess('');
+    setSubmitting(true);
 
     try {
       const customerData = {
@@ -422,7 +463,6 @@ const CustomerAccountForm = () => {
 
       if (customerError) throw customerError;
 
-      // Upload documents
       const documentUploads = Object.entries(files).map(async ([fieldName, file]) => {
         if (file) {
           const fileName = `customer/${customer.id}/${fieldName}/${Date.now()}-${file.name.replace(/ /g, '-')}`;
@@ -438,7 +478,7 @@ const CustomerAccountForm = () => {
 
           const documentData = {
             title: `${fieldName} - ${file.name}`,
-            file_url: fileName, // Store the file path
+            file_url: fileName,
             entity_type: 'customer',
             entity_id: customer.id,
             entity_name: customer.full_name,
@@ -501,11 +541,14 @@ const CustomerAccountForm = () => {
         businessRegCertificate: null,
         idPassport: null,
       });
-      setSuccess('Customer registered successfully with documents!');
+
+      setSubmitting(false);
+      setSuccess('The details have been submitted to Biogex admin');
       setTimeout(() => {
         navigate('/hr-management/customer-list');
       }, 1500);
     } catch (err) {
+      setSubmitting(false);
       setError('Error submitting form: ' + err.message);
       console.error(err);
     }
@@ -528,10 +571,15 @@ const CustomerAccountForm = () => {
             Please fill all the required information, attach the required documents, and click submit to complete your registration.
           </div>
           {error && <div className="form-error">{error}</div>}
+          {submitting && (
+            <div className="form-submitting">
+              <div className="spinner"></div>
+              Submitting...
+            </div>
+          )}
           {success && <div className="form-success">{success}</div>}
           <div className="form-body">
             <Form onSubmit={handleSubmit}>
-              {/* Section 1: Customer Details */}
               <h5 className="form-section-title">Section 1: Customer Details</h5>
               <hr style={{ borderColor: '#28a745' }} />
 
@@ -546,6 +594,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="As per official documents"
                     required
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -557,6 +606,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Business Name"
                     required
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -568,6 +618,7 @@ const CustomerAccountForm = () => {
                     value={formData.businessType}
                     onChange={handleInputChange}
                     required
+                    disabled={submitting}
                   >
                     <option value="">Select Business Type</option>
                     <option value="Sole Proprietorship">Sole Proprietorship</option>
@@ -585,6 +636,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Contact Person Name"
                     required
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -598,6 +650,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="e.g., Manager, Director"
                     required
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -609,6 +662,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="+254 123 456 789"
                     required
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -622,6 +676,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="example@domain.com"
                     required
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -632,6 +687,7 @@ const CustomerAccountForm = () => {
                     value={formData.altPhoneNumber}
                     onChange={handleInputChange}
                     placeholder="+254 987 654 321"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -647,6 +703,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Street Address"
                     required
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -658,6 +715,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter City"
                     required
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -670,6 +728,7 @@ const CustomerAccountForm = () => {
                     value={formData.county}
                     onChange={handleInputChange}
                     placeholder="Enter County"
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -680,6 +739,7 @@ const CustomerAccountForm = () => {
                     value={formData.postalCode}
                     onChange={handleInputChange}
                     placeholder="Enter Postal Code"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -693,6 +753,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Country"
                     required
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -704,6 +765,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="e.g., Office, Warehouse"
                     required
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -716,6 +778,7 @@ const CustomerAccountForm = () => {
                     value={formData.areaLocality}
                     onChange={handleInputChange}
                     placeholder="Enter Area/Locality"
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -726,6 +789,7 @@ const CustomerAccountForm = () => {
                     value={formData.nearestLandmark}
                     onChange={handleInputChange}
                     placeholder="Enter Nearest Landmark"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -738,11 +802,11 @@ const CustomerAccountForm = () => {
                     value={formData.gpsCoordinates}
                     onChange={handleInputChange}
                     placeholder="e.g., -1.2921, 36.8219"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
 
-              {/* Section 2: Financial Information */}
               <h5 className="form-section-title">Section 2: Financial Information</h5>
               <hr style={{ borderColor: '#28a745' }} />
 
@@ -757,6 +821,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Bank Name"
                     required
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -767,6 +832,7 @@ const CustomerAccountForm = () => {
                     value={formData.branchName}
                     onChange={handleInputChange}
                     placeholder="Enter Branch Name"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -780,6 +846,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Account Name"
                     required
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -791,6 +858,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Account Number"
                     required
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -803,6 +871,7 @@ const CustomerAccountForm = () => {
                     value={formData.swiftCode}
                     onChange={handleInputChange}
                     placeholder="Enter SWIFT Code"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -817,6 +886,7 @@ const CustomerAccountForm = () => {
                     value={formData.vatPin}
                     onChange={handleInputChange}
                     placeholder="Enter VAT PIN"
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -828,6 +898,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter KRA PIN"
                     required
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -842,6 +913,7 @@ const CustomerAccountForm = () => {
                     value={formData.creditLimit}
                     onChange={handleInputChange}
                     placeholder="Enter Credit Limit"
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -850,6 +922,7 @@ const CustomerAccountForm = () => {
                     name="paymentTerms"
                     value={formData.paymentTerms}
                     onChange={handleInputChange}
+                    disabled={submitting}
                   >
                     <option value="">Select Payment Terms</option>
                     <option value="Cash on Delivery">Cash on Delivery</option>
@@ -860,7 +933,6 @@ const CustomerAccountForm = () => {
                 </Col>
               </Row>
 
-              {/* Section 3: Trade References */}
               <h5 className="form-section-title">Section 3: Trade References</h5>
               <hr style={{ borderColor: '#28a745' }} />
 
@@ -874,6 +946,7 @@ const CustomerAccountForm = () => {
                     value={formData.tradeRef1Company}
                     onChange={handleInputChange}
                     placeholder="Enter Company Name"
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -884,6 +957,7 @@ const CustomerAccountForm = () => {
                     value={formData.tradeRef1Contact}
                     onChange={handleInputChange}
                     placeholder="Enter Contact Person"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -896,6 +970,7 @@ const CustomerAccountForm = () => {
                     value={formData.tradeRef1Phone}
                     onChange={handleInputChange}
                     placeholder="+254 123 456 789"
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -906,6 +981,7 @@ const CustomerAccountForm = () => {
                     value={formData.tradeRef1Email}
                     onChange={handleInputChange}
                     placeholder="example@domain.com"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -920,6 +996,7 @@ const CustomerAccountForm = () => {
                     value={formData.tradeRef2Company}
                     onChange={handleInputChange}
                     placeholder="Enter Company Name"
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -930,6 +1007,7 @@ const CustomerAccountForm = () => {
                     value={formData.tradeRef2Contact}
                     onChange={handleInputChange}
                     placeholder="Enter Contact Person"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -942,6 +1020,7 @@ const CustomerAccountForm = () => {
                     value={formData.tradeRef2Phone}
                     onChange={handleInputChange}
                     placeholder="+254 123 456 789"
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -952,11 +1031,11 @@ const CustomerAccountForm = () => {
                     value={formData.tradeRef2Email}
                     onChange={handleInputChange}
                     placeholder="example@domain.com"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
 
-              {/* Section 4: Declaration */}
               <h5 className="form-section-title">Section 4: Declaration</h5>
               <hr style={{ borderColor: '#28a745' }} />
               <Row>
@@ -969,6 +1048,7 @@ const CustomerAccountForm = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Your Name"
                     required
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -979,6 +1059,7 @@ const CustomerAccountForm = () => {
                     value={formData.declarationSignature}
                     onChange={handleInputChange}
                     placeholder="Type your name as a signature"
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -991,11 +1072,11 @@ const CustomerAccountForm = () => {
                     value={formData.declarationDate}
                     onChange={handleInputChange}
                     required
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
 
-              {/* Section 5: Document Uploads */}
               <h5 className="form-section-title">Section 5: Document Uploads</h5>
               <hr style={{ borderColor: '#28a745' }} />
               <Row>
@@ -1004,6 +1085,7 @@ const CustomerAccountForm = () => {
                   <Form.Control
                     type="file"
                     onChange={(e) => handleFileChange(e, 'kraPinCertificate')}
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -1011,6 +1093,7 @@ const CustomerAccountForm = () => {
                   <Form.Control
                     type="file"
                     onChange={(e) => handleFileChange(e, 'vatCertificate')}
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
@@ -1020,6 +1103,7 @@ const CustomerAccountForm = () => {
                   <Form.Control
                     type="file"
                     onChange={(e) => handleFileChange(e, 'businessRegCertificate')}
+                    disabled={submitting}
                   />
                 </Col>
                 <Col md={6} className="mb-3">
@@ -1027,15 +1111,26 @@ const CustomerAccountForm = () => {
                   <Form.Control
                     type="file"
                     onChange={(e) => handleFileChange(e, 'idPassport')}
+                    disabled={submitting}
                   />
                 </Col>
               </Row>
 
               <div className="form-footer text-center d-flex justify-content-center gap-3">
-                <Button type="submit" variant="light" className="form-button submit">
+                <Button
+                  type="submit"
+                  variant="light"
+                  className="form-button submit"
+                  disabled={submitting}
+                >
                   Submit Form
                 </Button>
-                <Button variant="danger" onClick={handleCancel} className="form-button cancel">
+                <Button
+                  variant="danger"
+                  onClick={handleCancel}
+                  className="form-button cancel"
+                  disabled={submitting}
+                >
                   Cancel
                 </Button>
               </div>

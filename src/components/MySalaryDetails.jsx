@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import jsPDF from 'jspdf';
 
-// Custom CSS for styling the details view
+// Custom CSS for styling the details view, including the spinner
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
@@ -152,6 +152,28 @@ const customStyles = `
     transform: translateY(-2px);
   }
 
+  .loading-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #f8fafc 0%, #e6f0fa 100%);
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #047857;
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   @media (max-width: 768px) {
     .mysary-card {
       max-width: 100%;
@@ -172,6 +194,13 @@ const customStyles = `
 
     .mysary-table th, .mysary-table td {
       font-size: 0.85rem;
+    }
+
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid #047857;
+      border-top: 3px solid transparent;
     }
   }
 `;
@@ -251,7 +280,14 @@ const MySalaryDetails = () => {
     fetchEmployeeData();
   }, [employeeId]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return (
+    <>
+      <style>{customStyles}</style>
+      <div className="loading-container">
+        <div className="spinner"></div>
+      </div>
+    </>
+  );
   if (error) return <p>{error}</p>;
   if (!employee) return <p>Employee not found.</p>;
 
